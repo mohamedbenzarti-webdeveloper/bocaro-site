@@ -1,0 +1,43 @@
+# Dépendances
+/node_modules
+
+# Build et cache Next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# Variables d'environnement (clés Supabase, Instagram) — jamais versionnées.
+# Le modèle .env.example, lui, est conservé.
+.env
+.env*.local
+.env.development
+.env.production
+
+# Tests et couverture
+/coverage
+
+# Journaux
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Systèmes et éditeurs
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Hébergement
+.vercel
+
+# Archives de sauvegarde et scripts de test locaux (identifiants dans .env.local)
+*.zip
+test-rls.js
+test-rls.mjs
+
+# Réglages locaux de Claude Code
+.claude/settings.local.json

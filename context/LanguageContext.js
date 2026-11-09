@@ -1,0 +1,76 @@
+"use client";
+
+import { createContext, useContext, useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { defaultLocale, locales } from "../lib/translations";
+
+const LanguageContext = createContext(null);
+
+// Même nom que lib/locale-server.js (le serveur lit ce cookie pour
+// générer directement les pages dans la bonne langue).
+const COOKIE_LANGUE = "bocaro-locale";
+
+function ecrireCookieLangue(locale) {
+  document.cookie = `${COOKIE_LANGUE}=${locale}; path=/; max-age=31536000; samesite=lax`;
+}
+
+function lireCookieLangue() {
+  const m = document.cookie.match(/(?:^|;\s*)bocaro-locale=([^;]+)/);
+  return m?.[1];
+}
+
+// Le dictionnaire de la SEULE langue active est fourni par le serveur
+// (app/layout.js) : le navigateur ne télécharge plus les traductions des
+// trois langues. Au changement de langue, le rafraîchissement serveur
+// renvoie le nouveau dictionnaire.
+export function LanguageProvider({ children, initialLocale = defaultLocale, dict }) {
+  const router = useRouter();
+  const [enCours, demarrer] = useTransition();
+  const [locale, setLocaleState] = useState(
+    locales.includes(initialLocale) ? initialLocale : defaultLocale
+  );
+
+  // Nouvelle langue reçue du serveur après rafraîchissement.
+  useEffect(() => {
+    setLocaleState(initialLocale);
+  }, [initialLocale]);
+
+  const setLocale = (newLocale) => {
+    if (!locales.includes(newLocale) || newLocale === locale) return;
+    setLocaleState(newLocale);
+    window.localStorage.setItem(COOKIE_LANGUE, newLocale);
+    ecrireCookieLangue(newLocale);
+    demarrer(() => router.refresh());
+  };
+
+  // Visiteurs d'avant le cookie : la langue n'était gardée que dans le
+  // navigateur. On la reprend une fois, puis le cookie prend le relais.
+  useEffect(() => {
+    if (lireCookieLangue()) return;
+    const ancienne = window.localStorage.getItem(COOKIE_LANGUE);
+    if (ancienne && locales.includes(ancienne) && ancienne !== locale) setLocale(ancienne);
+    else ecrireCookieLangue(locale);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Langue et sens d'écriture appliqués dès le clic (le texte suit dès que
+  // le serveur a renvoyé le dictionnaire).
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+  }, [locale]);
+
+  return (
+    <LanguageContext.Provider value={{ locale, setLocale, t: dict, enCours }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+}
+
+export function useLanguage() {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) {
+    throw new Error("useLanguage doit être utilisé à l'intérieur de LanguageProvider");
+  }
+  return ctx;
+}
