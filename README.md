@@ -1,8 +1,11 @@
 # BOCARO — Site web et dashboard
 
 Site de BOCARO (CAROANTIKA), fabricant tunisien de carreaux céramiques et
-de faïence faits main : vitrine trilingue, catalogue, simulateur de pose
-sol / murs, demandes de devis et dashboard d'administration.
+de faïence faits main : vitrine trilingue, catalogue avec recherche
+multi-filtres, simulateur de pose sol / murs et dashboard d'administration.
+
+**Versions** : Next.js 16.4.5 · React 19.3.1 · supabase-js 2.119 · sharp
+0.35.5 ou plus (requis par l'avis de sécurité GHSA-2464-fhr4-w9xw).
 
 **Technologies** : Next.js 16 (App Router, JavaScript) · React 19 ·
 Tailwind CSS 3 · Supabase (base de données, authentification, stockage) ·
@@ -27,6 +30,7 @@ npm run dev                  # http://localhost:3000
 | `npm run dev` | Développement (rechargement automatique) |
 | `npm run build` puis `npm run start` | Production |
 | `npm test` | Tests unitaires (Vitest) |
+| `npm audit --omit=dev` | Vulnérabilités des dépendances du site en ligne |
 
 ⚠️ **Ne jamais lancer `npm run build` pendant que `npm run dev` tourne** :
 les deux écrivent dans `.next/` ; le serveur de développement renvoie alors
@@ -58,9 +62,18 @@ dossier `sql/` :
 
 1. `schema.sql` — table `produits` et stockage d'images `produits` (inclut la v2)
 2. `migration_v3.sql` — traductions des produits (EN / AR)
-3. `migration_v4.sql` — table `demandes_devis` (simulateur, contact)
+3. `migration_v4.sql` — table `demandes_devis`
 4. `migration_v5.sql` — écriture réservée aux administrateurs (table `admins`, fonction `is_admin`)
 5. `migration_v6.sql` — anti-spam des demandes de devis (quota)
+6. `migration_v7.sql` — stockage verrouillé : plus de listage public du bucket,
+   JPEG / PNG / WebP de 5 Mo maximum
+7. `migration_v8.sql` — demandes de devis mises en pause (envoi fermé ; la
+   table et les demandes reçues sont conservées)
+
+> Les demandes de devis sont **désactivées** pour le moment (formulaire et
+> section du dashboard retirés). Pour les réactiver : réexécuter
+> `migration_v6.sql` et restaurer le code depuis l'historique Git (commit
+> « Version initiale du site BOCARO »).
 
 Puis :
 
@@ -69,7 +82,7 @@ Puis :
   e-mail et ré-exécuter le bloc `insert into public.admins …`.
 - **Désactiver l'inscription publique** : Authentication → Sign In / Providers
   → décocher *Allow new users to sign up*. Seuls les comptes listés dans
-  `admins` peuvent modifier le catalogue ou lire les devis.
+  `admins` peuvent modifier le catalogue et ses photos.
 
 ---
 
@@ -79,21 +92,24 @@ Puis :
 app/
   page.js                 Accueil (hero, galerie, produits, projets, témoignages, Instagram)
   a-propos/  contact/      Pages vitrine
-  catalogue/page.js        Catalogue (filtres, 9 produits par page)
-  catalogue/[id]/page.js   Fiche produit (galerie, flèches, glissement)
+  produits/page.js         Catalogue (recherche, filtres multiples, tri, 9 par page)
+  produits/[id]/page.js    Fiche produit (galerie, flèches, glissement)
+                           (/catalogue redirige vers /produits : next.config.js)
   simulateur/page.js       Simulateur en 4 étapes
   login/                   Connexion administrateur
-  dashboard/               Gestion des produits et des demandes de devis (admins)
-  actions/                 Actions serveur (produits, devis)
+  dashboard/               Gestion des produits et nettoyage du stockage (admins)
+  actions/produits.js      Actions serveur (produits, photos du stockage)
   api/instagram/route.js   Fil Instagram (token côté serveur, cache 6 h)
   sitemap.js  robots.js    Référencement
 components/                Navbar, Footer, Pagination, GalerieSlider, ProductDetail…
-components/simulateur/     Étapes, comparateur avant/après, canvas, formulaire de devis
+components/RechercheProduits.js  Recherche partagée (page Produits + simulateur)
+components/simulateur/     Étapes, comparateur avant/après, canvas
 lib/
   translations.js          Tous les textes FR / EN / AR
   rooms.js                 Pièces du simulateur (photos, contours, perspectives)
   simulateur/              Moteur de rendu (WebGL + repli Canvas 2D), homographie
   supabase/                Clients Supabase (navigateur, serveur, public, contrôle admin)
+  supabase/stockage.js     Chemin d'une photo dans le bucket, suppression
   site.js                  Coordonnées de l'entreprise, SITE_URL
 context/LanguageContext.js Langue active (cookie bocaro-locale)
 proxy.js                   Session Supabase + protection de /dashboard
@@ -114,6 +130,15 @@ public/images/             Carreaux de la marque, logo, photos du simulateur
 - Arabe : police Tajawal, `dir="rtl"`, flèches et alignements inversés.
 - Produits : champs `nom_en`, `nom_ar`, `description_en`… dans la base.
 
+### Recherche des carreaux
+Un seul module, `components/RechercheProduits.js`, sert la page Produits et
+l'étape « Carrelage » du simulateur :
+- recherche par mots dans les noms, descriptions (3 langues), type, couleurs
+  (traduites) et dimensions ; accents ignorés, « 20x20 » trouve « 20 x 20 cm » ;
+- filtres à choix multiples (type, dimension, couleur) : « OU » dans un
+  groupe, « ET » entre les groupes, avec le nombre de résultats par choix ;
+- tri : plus récents, prix croissant ou décroissant, nom.
+
 ### Thème
 Mode jour / nuit (`components/ThemeToggle.js`), couleurs définies comme
 variables CSS dans `app/globals.css` et palettes `bocaro` (bleu ardoise) et
@@ -126,6 +151,14 @@ variables CSS dans `app/globals.css` et palettes `bocaro` (bleu ardoise) et
   en WebP** dans le navigateur (≈ 200 Ko au lieu de 2-3 Mo), et son nom est
   nettoyé (accents, espaces) : Supabase refuse les noms accentués et les
   photos lourdes dépassent le délai de 7 s de l'optimiseur d'images.
+- **Stockage sans fichiers oubliés** : supprimer un produit supprime ses
+  photos ; retirer une photo la supprime à l'enregistrement ; un
+  enregistrement qui échoue supprime les photos qu'il venait d'envoyer.
+  Une photo encore utilisée par un produit n'est jamais supprimée.
+- L'encadré « Nettoyer le stockage » du dashboard supprime les fichiers
+  qu'aucun produit n'utilise (déposés depuis plus d'une heure).
+- Nécessite `migration_v7.sql` : la suppression exige que l'administrateur
+  puisse lire le bucket.
 
 ### Simulateur
 - Pièces décrites dans `lib/rooms.js` : photo, contour du sol
@@ -156,6 +189,26 @@ Le token expire au bout d'environ 60 jours : le renouveler (étape 3).
 
 ---
 
+## Git
+
+Le projet est versionné avec Git (branche `main`). Le `.gitignore` exclut
+`.env.local`, `node_modules/`, `.next/`, les archives `.zip` et les scripts
+`test-rls.*` (qui lisent des identifiants de test).
+
+```bash
+git add .
+git commit -m "Ce qui a changé"
+git push
+```
+
+Dépôt GitHub : à créer en **privé**, vide (sans README ni .gitignore), puis
+`git remote add origin <adresse>` et `git push -u origin main`. Si GitHub
+répond « Repository not found », vérifier que le compte connecté dans le
+gestionnaire d'identifiants Windows est bien celui qui possède le dépôt
+(`git credential-manager github list`).
+
+---
+
 ## Tester sur téléphone (même Wi-Fi)
 
 1. Trouver l'adresse du PC : `ipconfig` → « Adresse IPv4 » (ex. `192.168.100.77`).
@@ -176,6 +229,8 @@ Pour un bug d'affichage propre au mobile, tester sur l'appareil réel : les
 - [ ] `npm audit --omit=dev` sans vulnérabilité
 - [ ] `npm test` et `npm run build` sans erreur
 - [ ] Inscription publique Supabase désactivée, compte admin créé
+- [ ] Migrations `v7` et `v8` exécutées (stockage verrouillé, devis fermés)
+- [ ] Code envoyé sur le dépôt GitHub privé
 - [ ] Sitemap (`/sitemap.xml`) déclaré dans Google Search Console
 
 ---
