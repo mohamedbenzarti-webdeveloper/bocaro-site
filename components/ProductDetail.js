@@ -29,20 +29,20 @@ export default function ProductDetail({ produit }) {
   const waMsg = `${cat.waInterest} ${nomAffiche}`;
 
   return (
-    <section className="section-padding bg-surface">
+    <section className="bg-surface pt-8 pb-20 md:pt-10 md:pb-28">
       <div className="container-app">
         <Link
           href="/produits"
-          className="text-sm font-medium text-bocaro-600 hover:text-bocaro-900 inline-block py-2.5 mb-5"
+          className="lien-anime text-sm font-medium text-bocaro-600 hover:text-bocaro-950 inline-block pb-1 mb-8 transition-colors"
         >
           {cat.detailBack}
         </Link>
 
-        <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
-          {/* GALERIE D'IMAGES */}
-          <div>
+        <div className="grid md:grid-cols-12 gap-10 lg:gap-16 items-start">
+          {/* GALERIE D'IMAGES — reste visible pendant la lecture (ordinateur) */}
+          <div className="md:col-span-7 md:sticky md:top-28">
             <div
-              className="group relative aspect-square rounded-lg overflow-hidden bg-bocaro-50 border border-bocaro-100"
+              className="group relative aspect-square rounded overflow-hidden bg-bocaro-100"
               // Clavier (← →) et glissement du doigt sur mobile.
               tabIndex={plusieurs ? 0 : undefined}
               onKeyDown={(e) => {
@@ -76,7 +76,7 @@ export default function ProductDetail({ produit }) {
                     {...(index === 0
                       ? { preload: true }
                       : { loading: "eager", fetchPriority: "low" })}
-                    sizes="(min-width: 768px) 50vw, 100vw"
+                    sizes="(min-width: 768px) 58vw, 100vw"
                     className={`object-cover transition-opacity duration-300 ${
                       index === imageActive ? "opacity-100" : "opacity-0"
                     }`}
@@ -123,15 +123,17 @@ export default function ProductDetail({ produit }) {
             </div>
 
             {images.length > 1 && (
-              <div className="flex flex-wrap gap-3 mt-4">
+              <div className="flex flex-wrap gap-2 mt-3">
                 {images.map((url, index) => (
                   <button
                     key={url}
                     onClick={() => setImageActive(index)}
-                    className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors ${
+                    aria-label={`${index + 1} / ${images.length}`}
+                    aria-current={index === imageActive ? "true" : undefined}
+                    className={`relative w-20 h-20 rounded overflow-hidden border-2 transition-[border-color,opacity] ${
                       index === imageActive
-                        ? "border-bocaro-700"
-                        : "border-transparent hover:border-bocaro-300"
+                        ? "border-brand-600"
+                        : "border-transparent opacity-70 hover:opacity-100"
                     }`}
                   >
                     <Image src={url} alt="" fill sizes="80px" className="object-cover" />
@@ -141,72 +143,73 @@ export default function ProductDetail({ produit }) {
             )}
           </div>
 
-          {/* CARACTÉRISTIQUES */}
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
+          {/* CARACTÉRISTIQUES — titre, prix, description, puis tableau */}
+          <div className="md:col-span-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600">
               {typeAffiche}
-            </span>
-            <h1 className="font-serif text-3xl md:text-4xl font-bold text-bocaro-950 mt-2 mb-4">
+            </p>
+            <h1 className="font-serif text-4xl md:text-5xl leading-[1.05] text-bocaro-950 mt-3">
               {nomAffiche}
             </h1>
 
-            <p className="text-2xl font-semibold text-bocaro-700 mb-6">
+            <p className="font-serif text-2xl text-bocaro-950 mt-5">
               {produit.prix} {cat.unit}
             </p>
 
-            <div className="space-y-5 mb-8">
-              <div>
-                <h2 className="text-sm font-semibold text-bocaro-900 mb-1">
-                  {cat.detailDescription}
-                </h2>
-                <p className="text-bocaro-600 leading-relaxed">
-                  {descAffichee || cat.detailNoDescription}
-                </p>
-              </div>
+            <div className="mt-8">
+              <h2 className="sr-only">{cat.detailDescription}</h2>
+              <p className="text-bocaro-600 text-lg leading-relaxed">
+                {descAffichee || cat.detailNoDescription}
+              </p>
+            </div>
 
-              <div>
-                <h2 className="text-sm font-semibold text-bocaro-900 mb-2">
-                  {cat.detailDimensions}
-                </h2>
-                <div className="flex flex-wrap gap-2">
+            <dl className="mt-10 border-b border-bocaro-200">
+              <div className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-4 py-4 border-t border-bocaro-200">
+                <dt className="text-sm text-bocaro-600">{cat.detailType}</dt>
+                <dd className="text-sm font-medium text-bocaro-950">{typeAffiche}</dd>
+              </div>
+              <div className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-4 py-4 border-t border-bocaro-200">
+                <dt className="text-sm text-bocaro-600">{cat.detailDimensions}</dt>
+                <dd className="flex flex-wrap gap-2">
                   {(produit.dimensions ?? []).map((d) => (
                     <span
                       key={d}
-                      className="px-3 py-1.5 rounded-md text-sm border border-bocaro-200 text-bocaro-700"
+                      className="px-3 py-1 rounded-full text-sm border border-bocaro-300 text-bocaro-950 tabular-nums"
                     >
                       {d}
                     </span>
                   ))}
-                </div>
+                </dd>
               </div>
+              <div className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-4 py-4 border-t border-bocaro-200">
+                <dt className="text-sm text-bocaro-600">{cat.detailColours}</dt>
+                <dd className="text-sm font-medium text-bocaro-950">
+                  {(produit.couleurs ?? [])
+                    .map((c) => translateFixedField(productColourTranslations, c, locale))
+                    .join(" · ")}
+                </dd>
+              </div>
+            </dl>
 
-              <div>
-                <h2 className="text-sm font-semibold text-bocaro-900 mb-2">
-                  {cat.detailColours}
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {(produit.couleurs ?? []).map((c) => (
-                    <span
-                      key={c}
-                      className="px-3 py-1.5 rounded-md text-sm border border-bocaro-200 text-bocaro-700"
-                    >
-                      {translateFixedField(productColourTranslations, c, locale)}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-4 mt-10">
+              <a
+                href={`https://wa.me/21698514014?text=${encodeURIComponent(
+                  waMsg
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+              >
+                {cat.askButton}
+              </a>
+              <Link
+                href="/simulateur"
+                className="lien-anime group inline-flex items-center gap-2 font-semibold text-bocaro-950 pb-1"
+              >
+                {t.home.finalCtaButton1}
+                <span aria-hidden="true" className="inline-block transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1">→</span>
+              </Link>
             </div>
-
-            <a
-              href={`https://wa.me/21698514014?text=${encodeURIComponent(
-                waMsg
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary inline-block"
-            >
-              {cat.askButton}
-            </a>
           </div>
         </div>
       </div>

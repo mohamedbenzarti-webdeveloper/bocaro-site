@@ -137,111 +137,145 @@ export function useRechercheProduits(produits, locale, onChange) {
   };
 }
 
-/** Barre de recherche, filtres à choix multiples, filtres actifs et tri. */
+/** Barre de recherche, filtres à choix multiples, filtres actifs et tri.
+ *  Assemblage des trois morceaux ci-dessous (utilisé par le simulateur) ;
+ *  le catalogue les place lui-même (filtres dans une colonne). */
 export function PanneauRecherche({ r, idRecherche = "catalogue-search" }) {
+  return (
+    <>
+      <ChampRecherche r={r} idRecherche={idRecherche} className="max-w-xl mx-auto mb-6" />
+      <FiltresRecherche r={r} />
+      <BarreResultats r={r} className="mb-8" />
+    </>
+  );
+}
+
+/** Champ de recherche par nom ou description. */
+export function ChampRecherche({ r, idRecherche = "catalogue-search", className = "" }) {
+  const { t } = useLanguage();
+  const cat = t.catalogue;
+
+  return (
+    <div className={`relative ${className}`}>
+      <label htmlFor={idRecherche} className="sr-only">
+        {cat.searchLabel}
+      </label>
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        className="absolute start-4 top-1/2 -translate-y-1/2 w-5 h-5 text-bocaro-400 pointer-events-none"
+      >
+        <path
+          fillRule="evenodd"
+          d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+          clipRule="evenodd"
+        />
+      </svg>
+      <input
+        id={idRecherche}
+        type="search"
+        value={r.recherche}
+        onChange={(e) => r.setRecherche(e.target.value)}
+        placeholder={cat.searchPlaceholder}
+        className="w-full h-12 ps-12 pe-4 rounded-xl border border-bocaro-200 bg-surface text-bocaro-900 placeholder:text-bocaro-400 focus:outline-none focus:ring-2 focus:ring-bocaro-500 focus:border-bocaro-500 transition-shadow"
+      />
+    </div>
+  );
+}
+
+/** Groupes de filtres (type, dimension, couleur). encadre=false : sans
+ *  cadre, pour une colonne latérale. */
+export function FiltresRecherche({ r, encadre = true }) {
   const { t } = useLanguage();
   const cat = t.catalogue;
   const { locale } = r;
 
   return (
-    <>
-      <div className="relative max-w-xl mx-auto mb-6">
-        <label htmlFor={idRecherche} className="sr-only">
-          {cat.searchLabel}
-        </label>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className="absolute start-4 top-1/2 -translate-y-1/2 w-5 h-5 text-bocaro-400 pointer-events-none"
-        >
-          <path
-            fillRule="evenodd"
-            d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-            clipRule="evenodd"
-          />
-        </svg>
-        <input
-          id={idRecherche}
-          type="search"
-          value={r.recherche}
-          onChange={(e) => r.setRecherche(e.target.value)}
-          placeholder={cat.searchPlaceholder}
-          className="w-full h-12 ps-12 pe-4 rounded-xl border border-bocaro-200 bg-surface text-bocaro-900 placeholder:text-bocaro-400 focus:outline-none focus:ring-2 focus:ring-bocaro-500 focus:border-bocaro-500 transition-shadow"
-        />
-      </div>
+    <div
+      className={
+        encadre
+          ? "rounded-2xl border border-bocaro-100 bg-bocaro-50/60 p-5 sm:p-6 mb-6 space-y-5"
+          : "space-y-5 [&>fieldset]:pt-5 [&>fieldset]:border-t [&>fieldset]:border-bocaro-200"
+      }
+    >
+      <p className="text-xs text-bocaro-500">
+        <span className="font-semibold uppercase tracking-wide text-bocaro-700 me-2">{cat.filtersTitle}</span>
+        {cat.filterHint}
+      </p>
+      <GroupeFiltre
+        titre={cat.filterType}
+        groupe={r.groupes.type}
+        choisies={r.types}
+        libelle={(v) => translateFixedField(productTypeTranslations, v, locale)}
+        onBasculer={r.basculerType}
+      />
+      <GroupeFiltre
+        titre={cat.filterDimension}
+        groupe={r.groupes.dim}
+        choisies={r.dimensions}
+        libelle={(v) => v}
+        onBasculer={r.basculerDimension}
+      />
+      <GroupeFiltre
+        titre={cat.filterColour}
+        groupe={r.groupes.coul}
+        choisies={r.couleurs}
+        libelle={(v) => translateFixedField(productColourTranslations, v, locale)}
+        pastille={(v) => TEINTES[v]}
+        onBasculer={r.basculerCouleur}
+      />
+    </div>
+  );
+}
 
-      <div className="rounded-2xl border border-bocaro-100 bg-bocaro-50/60 p-5 sm:p-6 mb-6 space-y-5">
-        <p className="text-xs text-bocaro-500">
-          <span className="font-semibold uppercase tracking-wide text-bocaro-700 me-2">{cat.filtersTitle}</span>
-          {cat.filterHint}
+/** Nombre de résultats, filtres actifs (à retirer d'un clic) et tri. */
+export function BarreResultats({ r, className = "" }) {
+  const { t } = useLanguage();
+  const cat = t.catalogue;
+
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-3 ${className}`}>
+      <div className="flex flex-wrap items-center gap-2 min-h-9">
+        <p className="text-sm text-bocaro-500 me-1" aria-live="polite">
+          {cat.resultCount.replace("{count}", r.resultats.length)}
         </p>
-        <GroupeFiltre
-          titre={cat.filterType}
-          groupe={r.groupes.type}
-          choisies={r.types}
-          libelle={(v) => translateFixedField(productTypeTranslations, v, locale)}
-          onBasculer={r.basculerType}
-        />
-        <GroupeFiltre
-          titre={cat.filterDimension}
-          groupe={r.groupes.dim}
-          choisies={r.dimensions}
-          libelle={(v) => v}
-          onBasculer={r.basculerDimension}
-        />
-        <GroupeFiltre
-          titre={cat.filterColour}
-          groupe={r.groupes.coul}
-          choisies={r.couleurs}
-          libelle={(v) => translateFixedField(productColourTranslations, v, locale)}
-          pastille={(v) => TEINTES[v]}
-          onBasculer={r.basculerCouleur}
-        />
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-        <div className="flex flex-wrap items-center gap-2 min-h-9">
-          <p className="text-sm text-bocaro-500 me-1" aria-live="polite">
-            {cat.resultCount.replace("{count}", r.resultats.length)}
-          </p>
-          {r.actifs.map((f) => (
-            <button
-              key={f.cle}
-              type="button"
-              onClick={f.retirer}
-              aria-label={`${cat.removeFilter} : ${f.label}`}
-              className="inline-flex items-center gap-1.5 h-8 ps-3 pe-2 rounded-full bg-bocaro-700 text-white text-xs font-medium hover:bg-bocaro-900 transition-colors"
-            >
-              {f.label}
-              <span aria-hidden="true" className="text-sm leading-none">×</span>
-            </button>
-          ))}
-          {r.aDesFiltres && (
-            <button
-              type="button"
-              onClick={r.reinitialiser}
-              className="h-8 px-3 rounded-full text-xs font-medium text-brand-600 hover:text-brand-800 hover:bg-brand-50 transition-colors"
-            >
-              {cat.clearFilters}
-            </button>
-          )}
-        </div>
-        <label className="flex items-center gap-2 text-sm text-bocaro-600">
-          {cat.sortLabel}
-          <select
-            value={r.tri}
-            onChange={(e) => r.setTri(e.target.value)}
-            className="h-10 ps-3 pe-8 rounded-lg border border-bocaro-200 bg-surface text-sm text-bocaro-700 cursor-pointer hover:border-bocaro-500 focus:outline-none focus:ring-2 focus:ring-bocaro-500"
+        {r.actifs.map((f) => (
+          <button
+            key={f.cle}
+            type="button"
+            onClick={f.retirer}
+            aria-label={`${cat.removeFilter} : ${f.label}`}
+            className="inline-flex items-center gap-1.5 h-8 ps-3 pe-2 rounded-full bg-bocaro-700 text-white text-xs font-medium hover:bg-bocaro-900 transition-colors"
           >
-            <option value="recent">{cat.sortRecent}</option>
-            <option value="prix-asc">{cat.sortPriceAsc}</option>
-            <option value="prix-desc">{cat.sortPriceDesc}</option>
-            <option value="nom">{cat.sortName}</option>
-          </select>
-        </label>
+            {f.label}
+            <span aria-hidden="true" className="text-sm leading-none">×</span>
+          </button>
+        ))}
+        {r.aDesFiltres && (
+          <button
+            type="button"
+            onClick={r.reinitialiser}
+            className="h-8 px-3 rounded-full text-xs font-medium text-brand-600 hover:text-brand-800 hover:bg-brand-50 transition-colors"
+          >
+            {cat.clearFilters}
+          </button>
+        )}
       </div>
-    </>
+      <label className="flex items-center gap-2 text-sm text-bocaro-600">
+        {cat.sortLabel}
+        <select
+          value={r.tri}
+          onChange={(e) => r.setTri(e.target.value)}
+          className="h-10 ps-3 pe-8 rounded-lg border border-bocaro-200 bg-surface text-sm text-bocaro-700 cursor-pointer hover:border-bocaro-500 focus:outline-none focus:ring-2 focus:ring-bocaro-500"
+        >
+          <option value="recent">{cat.sortRecent}</option>
+          <option value="prix-asc">{cat.sortPriceAsc}</option>
+          <option value="prix-desc">{cat.sortPriceDesc}</option>
+          <option value="nom">{cat.sortName}</option>
+        </select>
+      </label>
+    </div>
   );
 }
 
