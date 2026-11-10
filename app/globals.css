@@ -2,145 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Thème : variables de couleur (voir tailwind.config.js). Le mode nuit
-   s'active avec la classe "dark" sur <html> (bouton de la barre de
-   navigation, réglage du système par défaut). */
+/* Thème : variables de couleur (voir tailwind.config.js).
+   Palette « artisanat méditerranéen » : ivoire (fond), lin et sable
+   (fonds secondaires, filets), encre (texte), terre cuite (actions) et
+   olive (fonds sombres, accents). Le mode nuit s'active avec la classe
+   "dark" sur <html> (bouton de la barre de navigation, réglage du système
+   par défaut).
+   Contrastes (WCAG AA, 4,5:1 minimum pour le texte) : encre sur ivoire
+   13,7:1 · texte secondaire (600) 6,2:1 · terre cuite sur ivoire 5,0:1 ·
+   texte clair sur terre cuite 5,4:1 · terre cuite de nuit 5,8:1. */
 :root {
-  --surface: 251 249 245;
-  --btn-outline: 42 66 115;
-  --btn-outline-text: 255 255 255;
-  --bg-50: 242 245 250;
-  --bg-100: 226 233 243;
-  --bg-200: 197 211 231;
-  --bg-300: 156 178 212;
-  --bg-400: 109 139 187;
-  --bg-500: 74 106 163;
-  --bg-600: 54 82 138;
-  --bg-700: 42 66 115;
-  --bg-800: 34 54 94;
-  --bg-900: 27 43 75;
-  --bg-950: 18 29 51;
-  --tx-50: 242 245 250;
-  --tx-100: 226 233 243;
-  --tx-200: 197 211 231;
-  --tx-300: 156 178 212;
-  --tx-400: 109 139 187;
-  --tx-500: 74 106 163;
-  --tx-600: 54 82 138;
-  --tx-700: 42 66 115;
-  --tx-800: 34 54 94;
-  --tx-900: 27 43 75;
-  --tx-950: 18 29 51;
-  --bd-50: 242 245 250;
-  --bd-100: 226 233 243;
-  --bd-200: 197 211 231;
-  --bd-300: 156 178 212;
-  --bd-400: 109 139 187;
-  --bd-500: 74 106 163;
-  --bd-600: 54 82 138;
-  --bd-700: 42 66 115;
-  --bd-800: 34 54 94;
-  --bd-900: 27 43 75;
-  --bd-950: 18 29 51;
-  --bgb-50: 253 243 238;
-  --bgb-100: 251 227 214;
-  --bgb-200: 245 196 171;
-  --bgb-300: 237 160 120;
-  --bgb-400: 223 122 77;
-  --bgb-500: 200 90 47;
-  --bgb-600: 168 68 36;
-  --bgb-700: 135 54 29;
-  --bgb-800: 108 44 26;
-  --bgb-900: 88 37 25;
-  --txb-50: 253 243 238;
-  --txb-100: 251 227 214;
-  --txb-200: 245 196 171;
-  --txb-300: 237 160 120;
-  --txb-400: 223 122 77;
-  --txb-500: 200 90 47;
-  --txb-600: 168 68 36;
-  --txb-700: 135 54 29;
-  --txb-800: 108 44 26;
-  --txb-900: 88 37 25;
-  --bdb-50: 253 243 238;
-  --bdb-100: 251 227 214;
-  --bdb-200: 245 196 171;
-  --bdb-300: 237 160 120;
-  --bdb-400: 223 122 77;
-  --bdb-500: 200 90 47;
-  --bdb-600: 168 68 36;
-  --bdb-700: 135 54 29;
-  --bdb-800: 108 44 26;
-  --bdb-900: 88 37 25;
+  --surface: 245 239 228;
+  --btn-outline: 67 77 48;
+  --btn-outline-text: 245 239 228;
+  --bg-50: 238 230 216;
+  --bg-100: 230 220 201;
+  --bg-200: 214 199 172;
+  --bg-300: 191 174 144;
+  --bg-400: 156 142 116;
+  --bg-500: 110 119 86;
+  --bg-600: 92 102 68;
+  --bg-700: 77 86 56;
+  --bg-800: 67 77 48;
+  --bg-900: 56 64 40;
+  --bg-950: 44 51 32;
+  --tx-50: 247 242 233;
+  --tx-100: 239 232 219;
+  --tx-200: 222 210 188;
+  --tx-300: 196 182 156;
+  --tx-400: 156 142 116;
+  --tx-500: 117 106 87;
+  --tx-600: 94 87 75;
+  --tx-700: 77 71 60;
+  --tx-800: 58 53 45;
+  --tx-900: 46 42 35;
+  --tx-950: 38 35 29;
+  --bd-50: 239 232 219;
+  --bd-100: 227 216 196;
+  --bd-200: 214 199 172;
+  --bd-300: 196 180 150;
+  --bd-400: 168 154 126;
+  --bd-500: 110 119 86;
+  --bd-600: 92 102 68;
+  --bd-700: 77 86 56;
+  --bd-800: 67 77 48;
+  --bd-900: 56 64 40;
+  --bd-950: 44 51 32;
+  --bgb-50: 249 238 230;
+  --bgb-100: 243 220 205;
+  --bgb-200: 232 189 163;
+  --bgb-300: 217 154 120;
+  --bgb-400: 199 116 78;
+  --bgb-500: 185 90 53;
+  --bgb-600: 169 73 42;
+  --bgb-700: 135 58 32;
+  --bgb-800: 108 47 28;
+  --bgb-900: 86 39 25;
+  --txb-50: 249 238 230;
+  --txb-100: 243 220 205;
+  --txb-200: 232 189 163;
+  --txb-300: 217 154 120;
+  --txb-400: 199 116 78;
+  --txb-500: 185 90 53;
+  --txb-600: 169 73 42;
+  --txb-700: 135 58 32;
+  --txb-800: 108 47 28;
+  --txb-900: 86 39 25;
+  --bdb-50: 249 238 230;
+  --bdb-100: 243 220 205;
+  --bdb-200: 232 189 163;
+  --bdb-300: 217 154 120;
+  --bdb-400: 199 116 78;
+  --bdb-500: 185 90 53;
+  --bdb-600: 169 73 42;
+  --bdb-700: 135 58 32;
+  --bdb-800: 108 47 28;
+  --bdb-900: 86 39 25;
 }
 
 html.dark {
-  --surface: 18 23 35;
-  --btn-outline: 156 178 212;
-  --btn-outline-text: 14 18 28;
-  --bg-50: 14 18 28;
-  --bg-100: 24 31 47;
-  --bg-200: 31 41 62;
-  --bg-300: 43 57 85;
-  --bg-400: 109 139 187;
-  --bg-500: 74 106 163;
-  --bg-600: 54 82 138;
-  --bg-700: 42 66 115;
-  --bg-800: 34 54 94;
-  --bg-900: 27 43 75;
-  --bg-950: 18 29 51;
-  --tx-50: 242 245 250;
-  --tx-100: 226 233 243;
-  --tx-200: 197 211 231;
-  --tx-300: 156 178 212;
-  --tx-400: 139 160 196;
-  --tx-500: 160 178 208;
-  --tx-600: 181 196 220;
-  --tx-700: 201 212 230;
-  --tx-800: 221 228 240;
-  --tx-900: 235 239 246;
-  --tx-950: 245 247 250;
-  --bd-50: 22 28 42;
-  --bd-100: 33 42 62;
-  --bd-200: 45 58 86;
-  --bd-300: 60 77 110;
-  --bd-400: 80 100 140;
-  --bd-500: 101 124 168;
-  --bd-600: 125 147 188;
-  --bd-700: 146 166 202;
-  --bd-800: 168 186 216;
-  --bd-900: 156 178 212;
-  --bd-950: 197 211 231;
-  --bgb-50: 34 21 18;
-  --bgb-100: 48 28 22;
-  --bgb-200: 74 40 29;
-  --bgb-300: 106 56 38;
-  --bgb-400: 223 122 77;
-  --bgb-500: 200 90 47;
-  --bgb-600: 168 68 36;
-  --bgb-700: 135 54 29;
-  --bgb-800: 108 44 26;
-  --bgb-900: 88 37 25;
-  --txb-50: 253 243 238;
-  --txb-100: 251 227 214;
-  --txb-200: 245 196 171;
-  --txb-300: 237 160 120;
-  --txb-400: 240 143 98;
-  --txb-500: 228 128 90;
-  --txb-600: 234 138 96;
-  --txb-700: 241 162 125;
-  --txb-800: 245 183 151;
-  --txb-900: 248 205 181;
-  --bdb-50: 34 21 18;
-  --bdb-100: 58 33 24;
-  --bdb-200: 90 49 34;
-  --bdb-300: 122 68 48;
-  --bdb-400: 223 122 77;
-  --bdb-500: 200 90 47;
-  --bdb-600: 168 68 36;
-  --bdb-700: 135 54 29;
-  --bdb-800: 108 44 26;
-  --bdb-900: 88 37 25;
+  --surface: 26 24 19;
+  --btn-outline: 167 177 133;
+  --btn-outline-text: 26 24 19;
+  --bg-50: 33 31 25;
+  --bg-100: 41 38 30;
+  --bg-200: 52 48 38;
+  --bg-300: 64 58 46;
+  --bg-400: 156 142 116;
+  --bg-500: 110 119 86;
+  --bg-600: 92 102 68;
+  --bg-700: 77 86 56;
+  --bg-800: 67 77 48;
+  --bg-900: 56 64 40;
+  --bg-950: 44 51 32;
+  --tx-50: 247 242 233;
+  --tx-100: 239 232 219;
+  --tx-200: 222 210 188;
+  --tx-300: 196 182 156;
+  --tx-400: 150 140 122;
+  --tx-500: 166 156 138;
+  --tx-600: 181 172 154;
+  --tx-700: 201 192 174;
+  --tx-800: 220 212 196;
+  --tx-900: 232 225 211;
+  --tx-950: 238 231 217;
+  --bd-50: 34 31 25;
+  --bd-100: 44 40 32;
+  --bd-200: 61 55 44;
+  --bd-300: 74 67 54;
+  --bd-400: 94 86 70;
+  --bd-500: 130 138 104;
+  --bd-600: 150 160 120;
+  --bd-700: 167 177 133;
+  --bd-800: 185 194 155;
+  --bd-900: 167 177 133;
+  --bd-950: 222 210 188;
+  --bgb-50: 42 29 22;
+  --bgb-100: 58 38 28;
+  --bgb-200: 79 50 35;
+  --bgb-300: 106 65 44;
+  --bgb-400: 199 116 78;
+  --bgb-500: 185 90 53;
+  --bgb-600: 169 73 42;
+  --bgb-700: 135 58 32;
+  --bgb-800: 108 47 28;
+  --bgb-900: 86 39 25;
+  --txb-50: 249 238 230;
+  --txb-100: 243 220 205;
+  --txb-200: 232 189 163;
+  --txb-300: 217 154 120;
+  --txb-400: 228 138 98;
+  --txb-500: 224 138 98;
+  --txb-600: 217 123 82;
+  --txb-700: 232 148 112;
+  --txb-800: 238 172 142;
+  --txb-900: 244 200 178;
+  --bdb-50: 42 29 22;
+  --bdb-100: 61 40 29;
+  --bdb-200: 90 56 38;
+  --bdb-300: 122 74 50;
+  --bdb-400: 199 116 78;
+  --bdb-500: 185 90 53;
+  --bdb-600: 169 73 42;
+  --bdb-700: 135 58 32;
+  --bdb-800: 108 47 28;
+  --bdb-900: 86 39 25;
 }
 
 html.dark {
@@ -204,13 +210,19 @@ html {
 }
 
 body {
-  font-family: var(--font-poppins), system-ui, sans-serif;
-  color: #1a1a2e;
+  font-family: var(--font-texte), "Segoe UI", system-ui, sans-serif;
+  color: rgb(var(--tx-950));
 }
 
 /* Support RTL pour l'arabe */
 html[dir="rtl"] body {
-  font-family: var(--font-tajawal), var(--font-poppins), system-ui, sans-serif;
+  font-family: var(--font-tajawal), var(--font-texte), Tahoma, system-ui, sans-serif;
+}
+
+/* Sélection de texte aux couleurs de la terre cuite. */
+::selection {
+  background: rgb(var(--bgb-200));
+  color: rgb(var(--tx-950));
 }
 
 html[dir="rtl"] .rtl-flip {
@@ -218,13 +230,19 @@ html[dir="rtl"] .rtl-flip {
 }
 
 @layer components {
+  /* Titres : Newsreader, serif éditorial. Léger resserrement des lettres
+     dans les grandes tailles, retours à la ligne équilibrés. */
   .font-serif {
-    font-family: var(--font-playfair), serif;
+    font-family: var(--font-titre), "Iowan Old Style", Georgia, serif;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
   }
 
+  /* En arabe : Amiri, calligraphie naskh, pour les titres. */
   html[dir="rtl"] .font-serif {
-    font-family: var(--font-tajawal), serif;
-    font-weight: 700;
+    font-family: var(--font-amiri), var(--font-tajawal), serif;
+    letter-spacing: 0;
+    line-height: 1.45;
   }
 
   .container-app {
@@ -273,38 +291,39 @@ html[dir="rtl"] .rtl-flip {
     display: none;
   }
 
+  /* Action principale : aplat terre cuite, coins presque droits, sans
+     ombre. Une seule par écran. */
   .btn-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background-color: #a84424;
-    color: white;
+    background-color: rgb(var(--bgb-600));
+    color: #fff8f1;
     font-weight: 600;
-    padding: 0.8rem 1.75rem;
-    border-radius: 0.375rem;
-    letter-spacing: 0.01em;
-    transition: all 0.25s ease;
-    box-shadow: 0 6px 16px -8px rgba(168, 68, 36, 0.6);
+    padding: 0.85rem 1.75rem;
+    border-radius: 2px;
+    letter-spacing: 0.02em;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   .btn-primary:hover {
-    background-color: #87361d;
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px -8px rgba(168, 68, 36, 0.6);
+    background-color: rgb(var(--bgb-700));
   }
 
+  /* Action secondaire : simple trait olive. */
   .btn-outline {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 2px solid rgb(var(--btn-outline));
+    border: 1px solid rgb(var(--btn-outline));
     color: rgb(var(--btn-outline));
     font-weight: 600;
-    padding: 0.75rem 1.75rem;
-    border-radius: 0.375rem;
-    transition: all 0.25s ease;
+    padding: 0.85rem 1.75rem;
+    border-radius: 2px;
+    letter-spacing: 0.02em;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   .btn-outline:hover {
@@ -312,14 +331,44 @@ html[dir="rtl"] .rtl-flip {
     color: rgb(var(--btn-outline-text));
   }
 
+  /* Survol des blocs cliquables : plus de soulèvement ni d'ombre, la
+     bordure se fonce. Zoom lent d'une photo : classe .zoom-photo sur
+     l'image, dans un parent .group. */
   .card-hover {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: border-color 0.3s ease;
   }
 
   .card-hover:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 18px 36px -18px rgba(18, 29, 51, 0.35);
+    border-color: rgb(var(--bd-400));
   }
+
+  .zoom-photo {
+    transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .group:hover .zoom-photo {
+    transform: scale(1.035);
+  }
+}
+
+/* Titres serif en gras : Newsreader se lit mieux en graisse moyenne. Les
+   41 titres marqués "font-bold" passent ainsi d'un coup à 500. */
+.font-serif.font-bold,
+.font-serif.font-semibold,
+.font-serif.font-black {
+  font-weight: 500;
+}
+
+html[dir="rtl"] .font-serif.font-bold,
+html[dir="rtl"] .font-serif.font-semibold,
+html[dir="rtl"] .font-serif.font-black {
+  font-weight: 700;
+}
+
+/* Focus clavier visible partout, aux couleurs de la terre cuite. */
+:focus-visible {
+  outline: 2px solid rgb(var(--bdb-600));
+  outline-offset: 2px;
 }
 
 /* Apparition en fondu — utilisée lors du changement de texture dans
@@ -388,8 +437,8 @@ html[dir="rtl"] .rtl-flip {
 
 .js-reveal .reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
   transition-delay: var(--d, 0ms);
 }
 
@@ -405,26 +454,6 @@ html[dir="rtl"] .rtl-flip {
 
 .carreau-vivant:hover {
   transform: rotate(-6deg) scale(1.06);
-}
-
-/* Reflet émaillé qui glisse sur les boutons principaux au survol. */
-.btn-primary {
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-primary::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
-  transform: translateX(-120%);
-  transition: transform 0.7s ease;
-  pointer-events: none;
-}
-
-.btn-primary:hover::after {
-  transform: translateX(120%);
 }
 
 /* Soulignement animé des liens de navigation. */
@@ -458,8 +487,11 @@ html[dir="rtl"] .lien-anime {
   .carreau-vivant:hover {
     transform: none;
   }
-  .btn-primary::after {
-    display: none;
+  .zoom-photo {
+    transition: none;
+  }
+  .group:hover .zoom-photo {
+    transform: none;
   }
 }
 

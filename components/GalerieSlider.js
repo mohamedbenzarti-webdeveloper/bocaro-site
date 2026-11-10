@@ -162,7 +162,7 @@ export default function GalerieSlider({ photos, textes }) {
                 {/* Légende : monte en fondu sur la photo active. */}
                 <figcaption
                   dir="auto"
-                  className="absolute inset-x-0 bottom-0 p-4 sm:p-8 bg-gradient-to-t from-[#0e1729]/90 via-[#0e1729]/35 to-transparent text-white flex flex-col items-start sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-4"
+                  className="absolute inset-x-0 bottom-0 p-4 sm:p-8 bg-gradient-to-t from-[#1c1a15]/90 via-[#1c1a15]/35 to-transparent text-white flex flex-col items-start sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-4"
                   style={{
                     opacity: estActif ? 1 : 0,
                     transform: estActif ? "translateY(0)" : "translateY(16px)",
@@ -177,7 +177,7 @@ export default function GalerieSlider({ photos, textes }) {
                     href={p.href}
                     tabIndex={estActif ? 0 : -1}
                     onClick={(e) => e.stopPropagation()}
-                    className="shrink-0 inline-flex items-center gap-2 rounded-md border border-white/60 px-3 sm:px-4 h-9 sm:h-10 text-xs sm:text-sm font-semibold hover:bg-white hover:text-[#0e1729] transition-colors"
+                    className="shrink-0 inline-flex items-center gap-2 rounded-md border border-white/60 px-3 sm:px-4 h-9 sm:h-10 text-xs sm:text-sm font-semibold hover:bg-white hover:text-[#1c1a15] transition-colors"
                   >
                     {textes.cta}
                     <span aria-hidden="true" className="rtl:rotate-180">→</span>
@@ -228,7 +228,7 @@ export default function GalerieSlider({ photos, textes }) {
               type="button"
               onClick={precedente}
               aria-label={textes.prev}
-              className="w-11 h-11 rounded-full border border-white/40 text-white flex items-center justify-center hover:bg-white hover:text-[#0e1729] transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40"
+              className="w-11 h-11 rounded-full border border-white/40 text-white flex items-center justify-center hover:bg-white hover:text-[#1c1a15] transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40"
             >
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M15 5l-7 7 7 7" />
@@ -238,7 +238,7 @@ export default function GalerieSlider({ photos, textes }) {
               type="button"
               onClick={suivante}
               aria-label={textes.next}
-              className="w-11 h-11 rounded-full border border-white/40 text-white flex items-center justify-center hover:bg-white hover:text-[#0e1729] transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40"
+              className="w-11 h-11 rounded-full border border-white/40 text-white flex items-center justify-center hover:bg-white hover:text-[#1c1a15] transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40"
             >
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M9 5l7 7-7 7" />

@@ -84,7 +84,7 @@ export default async function HomePage() {
               <Link href="/produits" className="btn-primary">
                 {h.ctaCatalogue}
               </Link>
-              <Link href="/contact" className="btn-outline !border-white/70 !text-white hover:!bg-white hover:!text-[#1b2b4b]">
+              <Link href="/contact" className="btn-outline !border-white/70 !text-white hover:!bg-white hover:!text-[#26231d]">
                 {h.ctaDevis}
               </Link>
             </div>
@@ -268,7 +268,7 @@ export default async function HomePage() {
                   sizes="(min-width: 768px) 33vw, 100vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#121d33]/90 via-[#121d33]/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1c1a15]/90 via-[#1c1a15]/20 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-7 text-white">
                   <p className="text-[11px] uppercase tracking-[0.18em] text-brand-300 font-semibold">{p.ville}</p>
                   <h3 className="font-serif text-2xl font-bold mt-1.5">{p.name}</h3>
@@ -396,7 +396,7 @@ export default async function HomePage() {
               sizes="(min-width: 1280px) 1200px, 100vw"
               className="object-cover"
             />
-            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[#121d33]/95 via-[#121d33]/80 to-[#121d33]/40 rtl:bg-gradient-to-l" />
+            <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[#1c1a15]/95 via-[#1c1a15]/80 to-[#1c1a15]/40 rtl:bg-gradient-to-l" />
             <div className="relative max-w-xl">
               <h2 className="font-serif text-3xl md:text-4xl font-bold text-white mb-4">
                 {h.finalCtaTitle}
@@ -408,7 +408,7 @@ export default async function HomePage() {
             <div className="relative flex flex-wrap gap-4">
               <Link
                 href="/simulateur"
-                className="inline-flex items-center justify-center bg-white text-[#87361d] font-bold rounded-md px-7 py-3 hover:bg-[#f2f5fa] transition-colors"
+                className="inline-flex items-center justify-center bg-white text-[#873a20] font-bold rounded-md px-7 py-3 hover:bg-[#f5efe4] transition-colors"
               >
                 {h.finalCtaButton1}
               </Link>

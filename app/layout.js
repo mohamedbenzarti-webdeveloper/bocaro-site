@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Poppins, Playfair_Display, Tajawal } from "next/font/google";
+import { Newsreader, Instrument_Sans, Tajawal, Amiri } from "next/font/google";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ScrollToTop from "../components/ScrollToTop";
@@ -11,25 +11,35 @@ import { getLocaleServeur } from "../lib/locale-server";
 
 // Polices auto-hébergées par Next.js (plus de requête bloquante vers
 // Google Fonts) : chaque police est exposée en variable CSS, utilisée par
-// globals.css et tailwind.config.js. Seules les graisses employées sont
-// chargées.
-const poppins = Poppins({
+// globals.css et tailwind.config.js.
+// - Newsreader : titres (serif éditorial, police variable avec italique et
+//   tailles optiques : fine dans les grands titres, solide en petit).
+// - Instrument Sans : texte courant, boutons, formulaires.
+// - Amiri (titres) et Tajawal (texte) : arabe uniquement, sans préchargement.
+const titre = Newsreader({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
   display: "swap",
-  variable: "--font-poppins",
+  variable: "--font-titre",
 });
-const playfair = Playfair_Display({
+const texte = Instrument_Sans({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-playfair",
+  variable: "--font-texte",
 });
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "700"],
   display: "swap",
   variable: "--font-tajawal",
-  // Utilisée seulement en arabe : pas de préchargement pour les autres.
+  preload: false,
+});
+const amiri = Amiri({
+  subsets: ["arabic"],
+  weight: ["400", "700"],
+  display: "swap",
+  variable: "--font-amiri",
   preload: false,
 });
 
@@ -93,7 +103,7 @@ export default async function RootLayout({ children }) {
   // langue et le bon sens d'écriture (arabe : droite à gauche).
   const locale = await getLocaleServeur();
   return (
-    <html lang={locale} dir={getDict(locale).dir} data-scroll-behavior="smooth" suppressHydrationWarning className={`${poppins.variable} ${playfair.variable} ${tajawal.variable}`}>
+    <html lang={locale} dir={getDict(locale).dir} data-scroll-behavior="smooth" suppressHydrationWarning className={`${titre.variable} ${texte.variable} ${tajawal.variable} ${amiri.variable}`}>
       <head>
         {/* Applique le thème avant le premier affichage (évite le flash). */}
         <script

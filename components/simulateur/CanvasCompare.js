@@ -132,7 +132,7 @@ export default function CanvasCompare({
         >
           <svg
             viewBox="0 0 24 24"
-            className="w-5 h-5 text-[#2a4273]"
+            className="w-5 h-5 text-[#434d30]"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
