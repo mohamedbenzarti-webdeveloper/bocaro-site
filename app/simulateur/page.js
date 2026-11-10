@@ -40,12 +40,18 @@ export default function SimulateurPage() {
   // appliqué une seule fois, dès que le catalogue est chargé. Le visiteur
   // choisit ensuite sa pièce ; le carreau est déjà coché à l'étape 2.
   const preselectionFaite = useRef(false);
+  // Vrai quand le carreau vient d'une fiche produit : l'étape « Carrelage »
+  // est alors sautée (pièce choisie → simulation directement).
+  const [depuisFiche, setDepuisFiche] = useState(false);
   useEffect(() => {
     if (preselectionFaite.current || !produits?.length) return;
     preselectionFaite.current = true;
     const id = new URLSearchParams(window.location.search).get("carreau");
     const produit = id && produits.find((p) => String(p.id) === id);
-    if (produit) setProduitActif(produit);
+    if (produit) {
+      setProduitActif(produit);
+      setDepuisFiche(true);
+    }
   }, [produits]);
 
   // Changer de pièce revient toujours au sol par défaut : un mur choisi
@@ -76,6 +82,7 @@ export default function SimulateurPage() {
 
   function recommencer() {
     setProduitActif(null);
+    setDepuisFiche(false);
     setReglages(REGLAGES_INITIAUX);
     setPieceId(null);
     setSurfaceType("sol");
@@ -117,7 +124,7 @@ export default function SimulateurPage() {
               onSelect={choisirPiece}
               surfaceType={surfaceType}
               onSelectSurface={setSurfaceType}
-              onContinue={() => allerA(2)}
+              onContinue={() => allerA(depuisFiche && produitActif ? 3 : 2)}
             />
           )}
 
