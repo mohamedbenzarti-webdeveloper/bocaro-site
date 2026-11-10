@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 import { localizeProductField } from "../../lib/translations";
 import { getRoom, getSurfaces, isRoomDisponible } from "../../lib/rooms";
@@ -35,6 +35,18 @@ export default function SimulateurPage() {
   const [produitActif, setProduitActif] = useState(null);
   const [reglages, setReglages] = useState(REGLAGES_INITIAUX);
   const [erreurRendu, setErreurRendu] = useState(null);
+
+  // Carreau présélectionné depuis une fiche produit (/simulateur?carreau=<id>) :
+  // appliqué une seule fois, dès que le catalogue est chargé. Le visiteur
+  // choisit ensuite sa pièce ; le carreau est déjà coché à l'étape 2.
+  const preselectionFaite = useRef(false);
+  useEffect(() => {
+    if (preselectionFaite.current || !produits?.length) return;
+    preselectionFaite.current = true;
+    const id = new URLSearchParams(window.location.search).get("carreau");
+    const produit = id && produits.find((p) => String(p.id) === id);
+    if (produit) setProduitActif(produit);
+  }, [produits]);
 
   // Changer de pièce revient toujours au sol par défaut : un mur choisi
   // sur une pièce ne présume pas de la pièce suivante.

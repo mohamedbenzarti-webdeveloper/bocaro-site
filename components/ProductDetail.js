@@ -203,7 +203,7 @@ export default function ProductDetail({ produit }) {
                 {cat.askButton}
               </a>
               <Link
-                href="/simulateur"
+                href={`/simulateur?carreau=${encodeURIComponent(produit.id)}`}
                 className="lien-anime group inline-flex items-center gap-2 font-semibold text-bocaro-950 pb-1"
               >
                 {t.home.finalCtaButton1}
