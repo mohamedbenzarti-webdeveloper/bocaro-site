@@ -25,7 +25,9 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-surface/90 backdrop-blur-md shadow-sm">
+    // Barre ivoire pleine, séparée de la page par un simple filet sable
+    // (plus d'ombre ni de flou).
+    <header className="sticky top-0 z-50 bg-surface border-b border-bocaro-200">
       <div className="container-app flex items-center justify-between h-20">
         <Link href="/" aria-label="BOCARO — Accueil" className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
           <span aria-hidden="true" className="logo-oiseau w-11 h-10 sm:w-14 sm:h-12 shrink-0 text-bocaro-950" />
@@ -40,13 +42,13 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-9">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               aria-current={estActif(link.href) ? "page" : undefined}
-              className="lien-anime text-sm font-medium text-bocaro-950 hover:text-bocaro-600 aria-[current=page]:text-bocaro-600 transition-colors pb-0.5"
+              className="lien-anime text-[13px] font-medium uppercase tracking-[0.14em] text-bocaro-950 hover:text-brand-600 aria-[current=page]:text-brand-600 transition-colors pb-1"
             >
               {link.label}
             </Link>
@@ -110,8 +112,10 @@ export default function Navbar() {
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
-        <div className="overflow-hidden bg-surface border-t border-bocaro-100">
-          <nav className="container-app flex flex-col py-4 gap-1">
+        {/* Panneau plein écran : grands liens en serif, séparés par des
+            filets, puis l'adresse et WhatsApp en bas. */}
+        <div className="overflow-hidden bg-surface">
+          <nav className="container-app flex flex-col pt-6 pb-8 min-h-[calc(100dvh-5rem)] overflow-y-auto">
             {links.map((link, i) => (
               <Link
                 key={link.href}
@@ -119,25 +123,29 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 aria-current={estActif(link.href) ? "page" : undefined}
                 style={{ transitionDelay: open ? `${80 + i * 50}ms` : "0ms" }}
-                className={`py-3 text-bocaro-950 aria-[current=page]:text-brand-600 aria-[current=page]:font-semibold font-medium border-b border-bocaro-50 last:border-none transition-all duration-300 ${
+                className={`flex items-baseline justify-between gap-4 py-4 font-serif text-[2rem] leading-tight text-bocaro-950 aria-[current=page]:text-brand-600 border-b border-bocaro-200 transition-all duration-300 ${
                   open ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-3 rtl:translate-x-3"
                 }`}
               >
                 {link.label}
+                <span aria-hidden="true" className="text-base font-sans text-bocaro-400 rtl:-scale-x-100">→</span>
               </Link>
             ))}
-            <div className="min-[380px]:hidden flex items-center justify-between py-2">
+            <div className="min-[380px]:hidden flex items-center justify-between py-4">
               <span className="text-sm text-bocaro-600">{t.nav.theme}</span>
               <ThemeToggle />
             </div>
-            <a
-              href="https://wa.me/21698514014"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary mt-4 text-sm w-full"
-            >
-              {t.nav.whatsappCta}
-            </a>
+            <div className="mt-auto pt-10">
+              <p className="text-sm text-bocaro-600 mb-4">Rue Ras Jedir, Soukra, Tunis</p>
+              <a
+                href="https://wa.me/21698514014"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary text-sm w-full"
+              >
+                {t.nav.whatsappCta}
+              </a>
+            </div>
           </nav>
         </div>
       </div>
