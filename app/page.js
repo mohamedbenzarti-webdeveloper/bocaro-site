@@ -500,7 +500,7 @@ function Echantillons() {
   return (
     <div
       aria-hidden="true"
-      className="absolute bottom-14 -start-3 sm:-start-6 lg:-start-10 grid grid-cols-2 gap-1 p-1 bg-surface"
+      className="absolute bottom-14 -start-3 sm:-start-4 lg:-start-10 grid grid-cols-2 gap-1 p-1 bg-surface"
     >
       {poses.map((nom, i) => (
         <div key={nom} className="pose-carreau relative w-14 h-14 sm:w-20 sm:h-20" style={{ "--i": i + 2 }}>
