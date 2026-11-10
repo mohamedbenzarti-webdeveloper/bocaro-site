@@ -32,7 +32,7 @@ export default function StepSimulation({
 
   return (
     <div>
-      <h2 className="font-serif text-2xl md:text-3xl font-bold text-bocaro-950 text-center mb-2">
+      <h2 className="font-serif text-3xl md:text-4xl leading-tight text-bocaro-950 text-center mb-3">
         {texts.title}
       </h2>
       <p className="text-bocaro-600 text-center max-w-lg mx-auto mb-8">

@@ -100,10 +100,10 @@ export default function FloorCanvas({
         ref={canvasRef}
         width={room.width}
         height={room.height}
-        className={className ?? "w-full h-auto block rounded-[28px]"}
+        className={className ?? "w-full h-auto block rounded"}
       />
       {!pret && (
-        <div className="absolute inset-0 flex items-center justify-center bg-bocaro-50/70 rounded-[28px]">
+        <div className="absolute inset-0 flex items-center justify-center bg-bocaro-50/70 rounded">
           <span className="w-8 h-8 rounded-full border-2 border-bocaro-300 border-t-bocaro-700 animate-spin" />
         </div>
       )}

@@ -16,7 +16,7 @@ export default function StepEspace({
 
   return (
     <div>
-      <h2 className="font-serif text-2xl md:text-3xl font-bold text-bocaro-950 text-center mb-2">
+      <h2 className="font-serif text-3xl md:text-4xl leading-tight text-bocaro-950 text-center mb-3">
         {texts.title}
       </h2>
       <p className="text-bocaro-600 text-center max-w-lg mx-auto mb-10">
@@ -41,9 +41,9 @@ export default function StepEspace({
               disabled={!disponible}
               className={`group relative rounded-2xl overflow-hidden text-left border-2 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-bocaro-300 ${
                 estActif
-                  ? "border-bocaro-900 shadow-xl scale-[1.02]"
+                  ? "border-brand-600"
                   : disponible
-                  ? "border-transparent hover:border-bocaro-300 hover:shadow-lg hover:-translate-y-1"
+                  ? "border-transparent hover:border-bocaro-300"
                   : "border-transparent opacity-60 cursor-not-allowed"
               }`}
             >
@@ -64,13 +64,13 @@ export default function StepEspace({
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0" />
                 {estActif && (
-                  <span className="absolute top-3 right-3 w-7 h-7 rounded-full bg-bocaro-900 text-white flex items-center justify-center">
+                  <span className="absolute top-3 right-3 w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center">
                     <svg viewBox="0 0 20 20" className="w-4 h-4" fill="currentColor">
                       <path d="M16.7 5.3a1 1 0 010 1.4l-7.4 7.4a1 1 0 01-1.4 0L3.3 9.5a1 1 0 111.4-1.4l3.9 3.9 6.7-6.7a1 1 0 011.4 0z" />
                     </svg>
                   </span>
                 )}
-                <span className="absolute bottom-3 left-4 text-white font-serif font-bold text-lg drop-shadow">
+                <span className="absolute bottom-3 left-4 text-white font-serif text-xl drop-shadow">
                   {texts.rooms[id]}
                 </span>
               </div>
@@ -119,7 +119,7 @@ export default function StepEspace({
           type="button"
           onClick={onContinue}
           disabled={!pieceActive}
-          className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-bocaro-700"
+          className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-600"
         >
           {texts.continueButton}
         </button>

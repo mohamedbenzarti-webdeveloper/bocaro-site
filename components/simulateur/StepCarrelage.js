@@ -52,7 +52,7 @@ export default function StepCarrelage({
 
   return (
     <div>
-      <h2 className="font-serif text-2xl md:text-3xl font-bold text-bocaro-950 text-center mb-2">
+      <h2 className="font-serif text-3xl md:text-4xl leading-tight text-bocaro-950 text-center mb-3">
         {texts.title}
       </h2>
       <p className="text-bocaro-600 text-center max-w-lg mx-auto mb-8">
@@ -116,7 +116,7 @@ export default function StepCarrelage({
                     key={p.id}
                     className={`bg-surface rounded-2xl overflow-hidden border-2 flex flex-col transition-all ${
                       estActif
-                        ? "border-bocaro-900 shadow-xl"
+                        ? "border-brand-600"
                         : "border-bocaro-100 card-hover"
                     }`}
                   >
@@ -130,7 +130,7 @@ export default function StepCarrelage({
                         />
                       ) : null}
                       {estActif && (
-                        <span className="absolute top-3 right-3 w-7 h-7 rounded-full bg-bocaro-900 text-white flex items-center justify-center">
+                        <span className="absolute top-3 right-3 w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center">
                           <svg viewBox="0 0 20 20" className="w-4 h-4" fill="currentColor">
                             <path d="M16.7 5.3a1 1 0 010 1.4l-7.4 7.4a1 1 0 01-1.4 0L3.3 9.5a1 1 0 111.4-1.4l3.9 3.9 6.7-6.7a1 1 0 011.4 0z" />
                           </svg>
@@ -138,10 +138,10 @@ export default function StepCarrelage({
                       )}
                     </div>
                     <div className="p-5 flex flex-col flex-1">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600">
                         {translateFixedField(productTypeTranslations, p.type, locale)}
                       </span>
-                      <h3 className="font-serif text-lg font-bold text-bocaro-950 mt-1 mb-2">
+                      <h3 className="font-serif text-xl leading-tight text-bocaro-950 mt-1 mb-2">
                         {localizeProductField(p, "nom", locale)}
                       </h3>
                       <p className="text-sm text-bocaro-600 mb-4">
@@ -178,7 +178,7 @@ export default function StepCarrelage({
               type="button"
               onClick={onContinue}
               disabled={!produitActif}
-              className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-bocaro-700"
+              className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-600"
             >
               {texts.continueButton}
             </button>

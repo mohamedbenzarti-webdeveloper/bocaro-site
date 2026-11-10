@@ -64,7 +64,7 @@ export default function CanvasCompare({
   return (
     <div
       ref={conteneurRef}
-      className="relative select-none touch-pan-y rounded-[28px] overflow-hidden shadow-xl ring-1 ring-bocaro-100 bg-surface"
+      className="relative select-none touch-pan-y rounded overflow-hidden ring-1 ring-bocaro-200 bg-surface"
       style={{ aspectRatio: `${room.width} / ${room.height}` }}
       onPointerDown={(e) => {
         setTouchee(true);

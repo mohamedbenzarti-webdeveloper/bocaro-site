@@ -22,9 +22,9 @@ export default function Stepper({ steps, current, plusHaut, onNavigate }) {
               <span
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
                   estActif
-                    ? "bg-bocaro-900 border-bocaro-900 text-white scale-110 shadow-md"
+                    ? "bg-bocaro-900 border-bocaro-900 text-white"
                     : estComplete
-                    ? "bg-brand-500 border-brand-500 text-white"
+                    ? "bg-brand-600 border-brand-600 text-white"
                     : "bg-surface border-bocaro-200 text-bocaro-400"
                 }`}
               >
@@ -37,7 +37,7 @@ export default function Stepper({ steps, current, plusHaut, onNavigate }) {
                 )}
               </span>
               <span
-                className={`text-xs font-medium text-center leading-tight max-w-[80px] ${
+                className={`text-[11px] font-semibold sm:uppercase sm:tracking-[0.12em] text-center leading-tight max-w-[80px] sm:max-w-[90px] ${
                   estActif ? "text-bocaro-950" : "text-bocaro-500"
                 }`}
               >
@@ -47,8 +47,8 @@ export default function Stepper({ steps, current, plusHaut, onNavigate }) {
 
             {numero < steps.length && (
               <div
-                className={`h-0.5 flex-1 mx-1 sm:mx-2 mt-5 rounded-full transition-colors ${
-                  numero < current ? "bg-brand-500" : "bg-bocaro-100"
+                className={`h-px flex-1 mx-1 sm:mx-2 mt-5 transition-colors ${
+                  numero < current ? "bg-brand-600" : "bg-bocaro-200"
                 }`}
               />
             )}
