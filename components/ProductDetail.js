@@ -164,24 +164,27 @@ export default function ProductDetail({ produit }) {
             </div>
 
             <dl className="mt-10 border-b border-bocaro-200">
-              <div className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-4 py-4 border-t border-bocaro-200">
+              <div className="grid grid-cols-1 min-[400px]:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] gap-x-4 gap-y-1 py-4 border-t border-bocaro-200 items-baseline">
                 <dt className="text-sm text-bocaro-600">{cat.detailType}</dt>
                 <dd className="text-sm font-medium text-bocaro-950">{typeAffiche}</dd>
               </div>
-              <div className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-4 py-4 border-t border-bocaro-200">
+              <div className="grid grid-cols-1 min-[400px]:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] gap-x-4 gap-y-1 py-4 border-t border-bocaro-200 items-baseline">
                 <dt className="text-sm text-bocaro-600">{cat.detailDimensions}</dt>
-                <dd className="flex flex-wrap gap-2">
-                  {(produit.dimensions ?? []).map((d) => (
-                    <span
-                      key={d}
-                      className="px-3 py-1 rounded-full text-sm border border-bocaro-300 text-bocaro-950 tabular-nums"
-                    >
-                      {d}
+                {/* Dimensions en texte, comme les autres lignes. Chaque format
+                    reste écrit de gauche à droite, même en arabe (sinon
+                    « 10 x 10 cm » s'affiche « x 10 cm 10 »). */}
+                <dd className="text-sm font-medium text-bocaro-950 leading-relaxed">
+                  {(produit.dimensions ?? []).map((d, i) => (
+                    <span key={d}>
+                      {i > 0 && <span aria-hidden="true" className="text-bocaro-400 mx-2">·</span>}
+                      <span dir="ltr" className="inline-block whitespace-nowrap tabular-nums">
+                        {d}
+                      </span>
                     </span>
                   ))}
                 </dd>
               </div>
-              <div className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-4 py-4 border-t border-bocaro-200">
+              <div className="grid grid-cols-1 min-[400px]:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] gap-x-4 gap-y-1 py-4 border-t border-bocaro-200 items-baseline">
                 <dt className="text-sm text-bocaro-600">{cat.detailColours}</dt>
                 <dd className="text-sm font-medium text-bocaro-950">
                   {(produit.couleurs ?? [])

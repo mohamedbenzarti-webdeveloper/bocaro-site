@@ -141,7 +141,16 @@ export default function CatalogueGrid({ produits }) {
                         <p className="text-sm text-bocaro-600 leading-relaxed mt-2 line-clamp-2">{descAffichee}</p>
                       )}
                       <div className="mt-3 space-y-0.5 text-sm text-bocaro-600">
-                        {p.dimensions?.length > 0 && <p>{p.dimensions.join(" · ")}</p>}
+                        {p.dimensions?.length > 0 && (
+                          <p>
+                            {p.dimensions.map((d, i) => (
+                              <span key={d}>
+                                {i > 0 && " · "}
+                                <span dir="ltr" className="inline-block whitespace-nowrap">{d}</span>
+                              </span>
+                            ))}
+                          </p>
+                        )}
                         {p.couleurs?.length > 0 && (
                           <p>
                             {p.couleurs
