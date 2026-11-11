@@ -14,7 +14,24 @@ export default function ContactForm({ c }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const texte = `${c.waGreeting},\n\n${c.waName} : ${form.nom}\n${c.waEmail} : ${form.email}\n${c.waMessage} : ${form.message}`;
+    // Message structuré : salutation, coordonnées, message séparé, mention
+    // de la page d'origine. *texte* = gras, _texte_ = italique dans WhatsApp.
+    const texte = [
+      c.waGreeting,
+      "",
+      c.waIntro,
+      "",
+      `*${c.waSection}*`,
+      `• ${c.waName} : ${form.nom.trim()}`,
+      `• ${c.waEmail} : ${form.email.trim()}`,
+      "",
+      `*${c.waMessage}*`,
+      form.message.trim(),
+      "",
+      c.waThanks,
+      "",
+      `_${c.waFooter}_`,
+    ].join("\n");
     window.open(
       `https://wa.me/21698514014?text=${encodeURIComponent(texte)}`,
       "_blank"
