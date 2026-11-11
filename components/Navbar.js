@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "../context/LanguageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -16,6 +16,21 @@ export default function Navbar() {
   const estActif = (href) =>
     href === "/" ? chemin === "/" : chemin === href || chemin.startsWith(href + "/");
 
+  // Menu ouvert : la page derrière ne défile plus (seul le menu défile).
+  useEffect(() => {
+    if (!open) return;
+    const avant = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    // Écran élargi au-delà du menu (rotation, fenêtre agrandie) : on ferme.
+    const large = window.matchMedia("(min-width: 1280px)");
+    const fermer = (e) => e.matches && setOpen(false);
+    large.addEventListener("change", fermer);
+    return () => {
+      document.documentElement.style.overflow = avant;
+      large.removeEventListener("change", fermer);
+    };
+  }, [open]);
+
   const links = [
     { href: "/", label: t.nav.home },
     { href: "/a-propos", label: t.nav.about },
@@ -29,11 +44,11 @@ export default function Navbar() {
     // (plus d'ombre ni de flou).
     <header className="sticky top-0 z-50 bg-surface border-b border-bocaro-200">
       <div className="container-app flex items-center justify-between h-20">
-        <Link href="/" aria-label="BOCARO — Accueil" className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-          <span aria-hidden="true" className="logo-oiseau w-11 h-10 sm:w-14 sm:h-12 shrink-0 text-bocaro-950" />
+        <Link href="/" aria-label="BOCARO — Accueil" className="flex items-center gap-2 min-[360px]:gap-2.5 sm:gap-3.5 min-w-0 shrink">
+          <span aria-hidden="true" className="logo-oiseau w-9 h-8 min-[360px]:w-11 min-[360px]:h-10 sm:w-14 sm:h-12 shrink-0 text-bocaro-950" />
           <span aria-hidden="true" className="w-px h-9 sm:h-11 bg-current opacity-60 text-bocaro-950 shrink-0" />
           <div className="flex flex-col leading-none">
-            <span className="font-sans text-xl sm:text-2xl font-semibold tracking-[0.12em] text-bocaro-950">
+            <span className="font-sans text-lg min-[360px]:text-xl sm:text-2xl font-semibold tracking-[0.12em] text-bocaro-950">
               BOCARO
             </span>
             <span className="mt-1 text-[10px] sm:text-[11px] tracking-[0.32em] whitespace-nowrap text-bocaro-950/70 font-normal uppercase">
@@ -42,20 +57,20 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-9">
+        <nav className="hidden xl:flex items-center gap-8">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               aria-current={estActif(link.href) ? "page" : undefined}
-              className="lien-anime text-[13px] font-medium uppercase tracking-[0.14em] text-bocaro-950 hover:text-brand-600 aria-[current=page]:text-brand-600 transition-colors pb-1"
+              className="lien-anime whitespace-nowrap text-[13px] font-medium uppercase tracking-[0.14em] text-bocaro-950 hover:text-brand-600 aria-[current=page]:text-brand-600 transition-colors pb-1"
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden lg:flex items-center gap-3">
+        <div className="hidden xl:flex items-center gap-3">
           <ThemeToggle />
           <LanguageSwitcher />
           <a
@@ -68,7 +83,7 @@ export default function Navbar() {
           </a>
         </div>
 
-        <div className="lg:hidden flex items-center gap-1.5 sm:gap-3">
+        <div className="xl:hidden flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Sous 380 px, le bouton thème passe dans le menu (sinon il
               chevauche le logo). */}
           <div className="hidden min-[380px]:block">
@@ -108,14 +123,14 @@ export default function Navbar() {
       <div
         id="menu-mobile"
         inert={!open}
-        className={`lg:hidden grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${
+        className={`xl:hidden grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
         {/* Panneau plein écran : grands liens en serif, séparés par des
             filets, puis l'adresse et WhatsApp en bas. */}
         <div className="overflow-hidden bg-surface">
-          <nav className="container-app flex flex-col pt-6 pb-8 min-h-[calc(100dvh-5rem)] overflow-y-auto">
+          <nav className="container-app flex flex-col pt-6 pb-8 [@media(max-height:500px)]:pt-2 [@media(max-height:500px)]:pb-4 h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain">
             {links.map((link, i) => (
               <Link
                 key={link.href}
@@ -123,7 +138,7 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 aria-current={estActif(link.href) ? "page" : undefined}
                 style={{ transitionDelay: open ? `${80 + i * 50}ms` : "0ms" }}
-                className={`flex items-baseline justify-between gap-4 py-4 font-serif text-[2rem] leading-tight text-bocaro-950 aria-[current=page]:text-brand-600 border-b border-bocaro-200 transition-all duration-300 ${
+                className={`flex items-baseline justify-between gap-4 py-4 [@media(max-height:500px)]:py-2 font-serif text-[2rem] [@media(max-height:500px)]:text-2xl leading-tight text-bocaro-950 aria-[current=page]:text-brand-600 border-b border-bocaro-200 transition-all duration-300 ${
                   open ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-3 rtl:translate-x-3"
                 }`}
               >
@@ -135,7 +150,7 @@ export default function Navbar() {
               <span className="text-sm text-bocaro-600">{t.nav.theme}</span>
               <ThemeToggle />
             </div>
-            <div className="mt-auto pt-10">
+            <div className="mt-auto pt-10 [@media(max-height:500px)]:pt-5">
               <p className="text-sm text-bocaro-600 mb-4">Rue Ras Jedir, Soukra, Tunis</p>
               <a
                 href="https://wa.me/21698514014"
