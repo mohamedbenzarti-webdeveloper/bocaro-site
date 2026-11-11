@@ -57,7 +57,7 @@ export default function TileInfoPanel({ produit, locale, uniteLabel, labels }) {
                   key={f}
                   className="px-2.5 py-1 rounded-full border border-bocaro-200 text-bocaro-700 text-xs"
                 >
-                  {f}
+                  <span dir="ltr">{f}</span>
                 </span>
               ))}
             </dd>

@@ -214,7 +214,7 @@ export function FiltresRecherche({ r, encadre = true }) {
         titre={cat.filterDimension}
         groupe={r.groupes.dim}
         choisies={r.dimensions}
-        libelle={(v) => v}
+        libelle={(v) => <span dir="ltr">{v}</span>}
         onBasculer={r.basculerDimension}
       />
       <GroupeFiltre
@@ -248,7 +248,7 @@ export function BarreResultats({ r, className = "" }) {
             aria-label={`${cat.removeFilter} : ${f.label}`}
             className="inline-flex items-center gap-1.5 h-8 ps-3 pe-2 rounded-full bg-bocaro-700 text-white text-xs font-medium hover:bg-bocaro-900 transition-colors"
           >
-            {f.label}
+            {f.cle.startsWith("d-") ? <span dir="ltr">{f.label}</span> : f.label}
             <span aria-hidden="true" className="text-sm leading-none">×</span>
           </button>
         ))}

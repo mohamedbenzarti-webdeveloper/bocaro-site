@@ -135,7 +135,7 @@ export default function StepSimulation({
                           : "bg-surface text-bocaro-700 border-bocaro-200 hover:border-bocaro-400"
                       }`}
                     >
-                      {f}
+                      <span dir="ltr">{f}</span>
                     </button>
                   ))}
                 </div>
