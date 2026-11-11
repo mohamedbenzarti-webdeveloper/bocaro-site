@@ -131,7 +131,7 @@ export default function CatalogueGrid({ produits }) {
                           </div>
                         )}
                       </div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600 mt-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-600 mt-5">
                         {translateFixedField(productTypeTranslations, p.type, locale)}
                       </p>
                       <h2 className="font-serif text-2xl leading-tight text-bocaro-950 mt-1.5 group-hover:text-brand-600 transition-colors">

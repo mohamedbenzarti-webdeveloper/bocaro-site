@@ -33,11 +33,11 @@ export default function Footer() {
             {t.footer.navTitle}
           </h2>
           <ul className="text-sm text-bocaro-200 space-y-1">
-            <li><Link href="/" className="lien-anime inline-block py-1.5 hover:text-white transition-colors">{t.nav.home}</Link></li>
-            <li><Link href="/a-propos" className="lien-anime inline-block py-1.5 hover:text-white transition-colors">{t.nav.about}</Link></li>
-            <li><Link href="/produits" className="lien-anime inline-block py-1.5 hover:text-white transition-colors">{t.nav.catalogue}</Link></li>
-            <li><Link href="/simulateur" className="lien-anime inline-block py-1.5 hover:text-white transition-colors">{t.nav.simulator}</Link></li>
-            <li><Link href="/contact" className="lien-anime inline-block py-1.5 hover:text-white transition-colors">{t.nav.contact}</Link></li>
+            <li><Link href="/" className="lien-anime inline-block py-2.5 hover:text-white transition-colors">{t.nav.home}</Link></li>
+            <li><Link href="/a-propos" className="lien-anime inline-block py-2.5 hover:text-white transition-colors">{t.nav.about}</Link></li>
+            <li><Link href="/produits" className="lien-anime inline-block py-2.5 hover:text-white transition-colors">{t.nav.catalogue}</Link></li>
+            <li><Link href="/simulateur" className="lien-anime inline-block py-2.5 hover:text-white transition-colors">{t.nav.simulator}</Link></li>
+            <li><Link href="/contact" className="lien-anime inline-block py-2.5 hover:text-white transition-colors">{t.nav.contact}</Link></li>
           </ul>
         </div>
 
@@ -46,17 +46,17 @@ export default function Footer() {
           <ul className="space-y-2 text-sm text-bocaro-200">
             <li>Rue Ras Jedir, Soukra, Tunis</li>
             <li>
-              <a href="mailto:bocaro_tunisia@yahoo.com" className="lien-anime inline-block py-1.5 hover:text-white transition-colors">
+              <a href="mailto:bocaro_tunisia@yahoo.com" className="lien-anime inline-block py-2.5 hover:text-white transition-colors">
                 bocaro_tunisia@yahoo.com
               </a>
             </li>
             <li>
-              <a href="https://wa.me/21698514014" className="lien-anime inline-block py-1.5 hover:text-white transition-colors">
+              <a href="https://wa.me/21698514014" className="lien-anime inline-block py-2.5 hover:text-white transition-colors">
                 WhatsApp : +216 98 514 014
               </a>
             </li>
             <li>
-              <a href="https://wa.me/21622447900" className="lien-anime inline-block py-1.5 hover:text-white transition-colors">
+              <a href="https://wa.me/21622447900" className="lien-anime inline-block py-2.5 hover:text-white transition-colors">
                 WhatsApp : +216 22 447 900
               </a>
             </li>

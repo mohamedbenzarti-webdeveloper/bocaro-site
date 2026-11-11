@@ -138,7 +138,7 @@ export default function StepCarrelage({
                       )}
                     </div>
                     <div className="p-5 flex flex-col flex-1">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600">
+                      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
                         {translateFixedField(productTypeTranslations, p.type, locale)}
                       </span>
                       <h3 className="font-serif text-xl leading-tight text-bocaro-950 mt-1 mb-2">

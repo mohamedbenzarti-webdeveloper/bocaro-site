@@ -95,7 +95,7 @@ export default function StepEspace({
                 type="button"
                 onClick={() => onSelectSurface(s.id)}
                 aria-pressed={surfaceType === s.id}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`min-h-10 px-5 rounded-full text-sm font-medium transition-colors ${
                   surfaceType === s.id
                     ? "bg-bocaro-900 text-white"
                     : "text-bocaro-700 hover:bg-bocaro-50"

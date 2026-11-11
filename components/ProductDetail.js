@@ -145,7 +145,7 @@ export default function ProductDetail({ produit }) {
 
           {/* CARACTÉRISTIQUES — titre, prix, description, puis tableau */}
           <div className="md:col-span-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
               {typeAffiche}
             </p>
             <h1 className="font-serif text-4xl md:text-5xl leading-[1.05] text-bocaro-950 mt-3">

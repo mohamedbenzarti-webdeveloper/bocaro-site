@@ -31,7 +31,7 @@ export default function TileInfoPanel({ produit, locale, uniteLabel, labels }) {
           />
         )}
         <div className="min-w-0">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-brand-500">
+          <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
             {type}
           </span>
           <p className="font-serif text-lg font-bold text-bocaro-950 truncate">

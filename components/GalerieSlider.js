@@ -170,14 +170,14 @@ export default function GalerieSlider({ photos, textes }) {
                   }}
                 >
                   <span>
-                    <span className="block text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-brand-300 font-semibold whitespace-nowrap">{p.type}</span>
+                    <span className="block text-xs uppercase tracking-[0.18em] text-brand-300 font-semibold whitespace-nowrap">{p.type}</span>
                     <span className="block font-serif text-xl sm:text-3xl font-bold mt-1 leading-tight">{p.nom}</span>
                   </span>
                   <Link
                     href={p.href}
                     tabIndex={estActif ? 0 : -1}
                     onClick={(e) => e.stopPropagation()}
-                    className="shrink-0 inline-flex items-center gap-2 rounded-md border border-white/60 px-3 sm:px-4 h-9 sm:h-10 text-xs sm:text-sm font-semibold hover:bg-white hover:text-[#1c1a15] transition-colors"
+                    className="shrink-0 inline-flex items-center gap-2 rounded-md border border-white/60 px-3 sm:px-4 h-10 text-xs sm:text-sm font-semibold hover:bg-white hover:text-[#1c1a15] transition-colors"
                   >
                     {textes.cta}
                     <span aria-hidden="true" className="rtl:rotate-180">→</span>
@@ -206,7 +206,7 @@ export default function GalerieSlider({ photos, textes }) {
                 onClick={() => aller(i)}
                 aria-label={`${textes.go} ${i + 1}`}
                 aria-current={i === actif ? "true" : undefined}
-                className="relative h-1.5 rounded-full overflow-hidden bg-white/20 transition-all duration-500"
+                className="zone-tactile h-1.5 rounded-full bg-white/20 transition-all duration-500"
                 style={{ width: i === actif ? 44 : 14 }}
               >
                 {i === actif && (

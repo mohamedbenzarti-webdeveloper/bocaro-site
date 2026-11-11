@@ -166,7 +166,7 @@ export default function StepResultat({
       <div className="text-center mt-6">
         <button
           onClick={onStartOver}
-          className="text-sm font-medium text-bocaro-500 hover:text-bocaro-800 underline underline-offset-4"
+          className="zone-tactile text-sm font-medium text-bocaro-600 hover:text-bocaro-800 underline underline-offset-4"
         >
           {texts.startOverButton}
         </button>

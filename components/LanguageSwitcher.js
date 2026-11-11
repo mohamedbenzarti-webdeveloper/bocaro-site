@@ -81,7 +81,7 @@ export default function LanguageSwitcher({ variant = "desktop" }) {
               setOpen(false);
             }}
             tabIndex={open ? 0 : -1}
-            className={`w-full text-start px-4 py-2.5 text-sm hover:bg-bocaro-50 transition-all duration-150 hover:ps-5 ${
+            className={`w-full text-start px-4 py-3 text-sm hover:bg-bocaro-50 transition-all duration-150 hover:ps-5 ${
               locale === l ? "text-bocaro-700 font-semibold" : "text-bocaro-900"
             }`}
             style={{ transitionDelay: open ? `${i * 30}ms` : "0ms" }}

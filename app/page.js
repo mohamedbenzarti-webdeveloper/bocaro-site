@@ -215,7 +215,7 @@ export default async function HomePage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600 mt-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-600 mt-5">
                     {translateFixedField(productTypeTranslations, p.type, locale)}
                   </p>
                   <h3 className={`font-serif leading-tight text-bocaro-950 mt-1.5 ${i === 0 ? "text-3xl" : "text-2xl"}`}>
@@ -282,7 +282,7 @@ export default async function HomePage() {
                     className="object-cover zoom-photo"
                   />
                 </div>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-brand-600 font-semibold mt-6">{projetUne.ville}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-brand-600 font-semibold mt-6">{projetUne.ville}</p>
                 <h3 className="font-serif text-3xl md:text-4xl text-bocaro-950 mt-2">{projetUne.name}</h3>
                 <p className="text-bocaro-600 mt-2">{projetUne.surface}</p>
               </article>
@@ -304,7 +304,7 @@ export default async function HomePage() {
                     />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-brand-600 font-semibold">{p.ville}</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-brand-600 font-semibold">{p.ville}</p>
                     <h3 className="font-serif text-2xl text-bocaro-950 mt-1.5">{p.name}</h3>
                     <p className="text-sm text-bocaro-600 mt-1">{p.surface}</p>
                   </div>

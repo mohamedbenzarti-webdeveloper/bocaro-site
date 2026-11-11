@@ -37,7 +37,7 @@ export default function Stepper({ steps, current, plusHaut, onNavigate }) {
                 )}
               </span>
               <span
-                className={`text-[11px] font-semibold sm:uppercase sm:tracking-[0.12em] text-center leading-tight max-w-[80px] sm:max-w-[90px] ${
+                className={`text-xs font-semibold sm:uppercase sm:tracking-[0.12em] text-center leading-tight max-w-[80px] sm:max-w-[90px] ${
                   estActif ? "text-bocaro-950" : "text-bocaro-500"
                 }`}
               >

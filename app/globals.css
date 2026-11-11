@@ -365,6 +365,25 @@ html[dir="rtl"] .font-serif.font-black {
   font-weight: 700;
 }
 
+/* Zone tactile agrandie sans changer l'apparence : liens texte et petits
+   boutons gardent leur taille visuelle, mais le doigt dispose d'au moins
+   44 × 44 px (recommandation d'accessibilité). */
+.lien-anime,
+.zone-tactile {
+  position: relative;
+}
+
+.lien-anime::before,
+.zone-tactile::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
 /* Focus clavier visible partout, aux couleurs de la terre cuite. */
 :focus-visible {
   outline: 2px solid rgb(var(--bdb-600));

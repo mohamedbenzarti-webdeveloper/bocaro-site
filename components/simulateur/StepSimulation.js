@@ -111,7 +111,7 @@ export default function StepSimulation({
               <button
                 type="button"
                 onClick={onReset}
-                className="text-xs font-medium text-bocaro-500 hover:text-bocaro-900 underline underline-offset-4 transition-colors"
+                className="zone-tactile text-xs font-medium text-bocaro-600 hover:text-bocaro-900 underline underline-offset-4 transition-colors"
               >
                 {texts.resetButton}
               </button>
@@ -129,7 +129,7 @@ export default function StepSimulation({
                       type="button"
                       onClick={() => onChangeReglages({ format: f })}
                       aria-pressed={formatCourant === f}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                      className={`min-h-10 px-3.5 rounded-full text-xs font-medium border transition-all ${
                         formatCourant === f
                           ? "bg-bocaro-900 text-white border-bocaro-900"
                           : "bg-surface text-bocaro-700 border-bocaro-200 hover:border-bocaro-400"
@@ -153,7 +153,7 @@ export default function StepSimulation({
                     type="button"
                     onClick={() => onChangeReglages({ rotation: deg })}
                     aria-pressed={rotation === deg}
-                    className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all ${
+                    className={`flex-1 min-h-10 rounded-xl text-sm font-medium border transition-all ${
                       rotation === deg
                         ? "bg-bocaro-900 text-white border-bocaro-900"
                         : "bg-surface text-bocaro-700 border-bocaro-200 hover:border-bocaro-400"
@@ -183,7 +183,7 @@ export default function StepSimulation({
                 onChange={(e) =>
                   onChangeReglages({ jointWidth: Number(e.target.value) })
                 }
-                className="w-full accent-bocaro-700"
+                className="w-full h-10 accent-bocaro-700 cursor-pointer"
               />
             </div>
 
@@ -200,7 +200,7 @@ export default function StepSimulation({
                     aria-label={`${texts.jointColorLabel} ${c}`}
                     aria-pressed={jointColor === c}
                     style={{ backgroundColor: c }}
-                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                    className={`zone-tactile w-9 h-9 rounded-full border-2 transition-all ${
                       jointColor === c
                         ? "border-bocaro-700 ring-2 ring-bocaro-300 scale-110"
                         : "border-white ring-1 ring-bocaro-200 hover:scale-105"

@@ -312,7 +312,7 @@ function GroupeFiltre({ titre, groupe, choisies, libelle, pastille, onBasculer }
               aria-pressed={choisie}
               disabled={!choisie && n === 0}
               onClick={() => onBasculer(v)}
-              className={`inline-flex items-center gap-2 h-9 px-3.5 rounded-full border text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+              className={`inline-flex items-center gap-2 h-10 px-3.5 rounded-full border text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                 choisie
                   ? "bg-bocaro-700 text-white border-bocaro-700"
                   : "bg-surface text-bocaro-700 border-bocaro-200 hover:border-bocaro-500"
