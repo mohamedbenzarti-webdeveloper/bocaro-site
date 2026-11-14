@@ -35,6 +35,9 @@ vi.mock("../actions/produits", () => ({
   deconnexion: async () => undefined,
 }));
 
+// En-têtes de la requête : nonce de la CSP posé par proxy.js.
+vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-nonce": "nonce-de-test" }) }));
+
 // Polices Google : sans le compilateur de Next.js, on renvoie des noms fixes.
 vi.mock("next/font/google", () => {
   const police = (nom) => () => ({ variable: `--police-${nom}`, className: nom });
@@ -295,6 +298,8 @@ describe("mise en page générale", () => {
     expect(html).toMatch(/<html[^>]* lang="ar"[^>]* dir="rtl"/);
     expect(html).toContain('"@type":"HomeAndConstructionBusiness"');
     expect(html).toContain("localStorage.getItem('bocaro-theme')");
+    // Le script du thème porte le nonce, sinon la CSP le bloquerait.
+    expect(html).toMatch(/<script nonce="nonce-de-test">try\{var t=localStorage/);
     expect(html).toContain("<main>page</main>");
   });
 });

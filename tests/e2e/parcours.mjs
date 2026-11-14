@@ -71,6 +71,10 @@ async function lancerChrome() {
       });
       return;
     }
+    // Violations de la politique de sécurité (CSP) et autres erreurs du
+    // navigateur : elles passent par le journal, pas par la console JS.
+    if (m.method === "Log.entryAdded" && m.params.entry.level === "error")
+      erreursConsole.push(m.params.entry.text.slice(0, 200));
     if (m.method === "Runtime.exceptionThrown") erreursConsole.push(m.params.exceptionDetails.exception?.description?.split("\n")[0]);
     if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error")
       erreursConsole.push(m.params.args.map((a) => a.value ?? a.description).join(" ").slice(0, 200));
@@ -90,6 +94,7 @@ async function lancerChrome() {
   await cdp("Page.enable");
   await cdp("Runtime.enable");
   await cdp("Network.enable");
+  await cdp("Log.enable");
   if (process.env.E2E_PHOTOS_RESEAU !== "1") await cdp("Fetch.enable", { patterns: [{ urlPattern: "*supabase.co/storage/*" }] });
 
   const navigateur = {
@@ -152,15 +157,42 @@ function verifier(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-test("chaque page publique répond et s'affiche sans erreur JavaScript", async (nav) => {
+test("chaque page publique répond et s'affiche sans erreur JavaScript ni blocage de la CSP", async (nav) => {
   for (const chemin of ["/", "/produits", "/simulateur", "/a-propos", "/contact", "/login"]) {
     const reponse = await fetch(BASE + chemin);
     verifier(reponse.status === 200, `${chemin} : statut ${reponse.status}`);
     await nav.ouvrir(chemin);
     verifier(await nav.js("document.querySelector('h1')?.textContent.trim().length > 0"), `${chemin} : pas de titre h1`);
-    const erreurs = nav.erreursConsole.filter((e) => !/Failed to load resource|upstream image/i.test(e));
+    const erreurs = nav.erreursConsole.filter((e) => !/Failed to load resource|upstream image|status of 404/i.test(e));
     verifier(erreurs.length === 0, `${chemin} : erreurs console ${JSON.stringify(erreurs)}`);
   }
+});
+
+test("en-têtes de sécurité : CSP avec nonce, pas de X-Powered-By", async () => {
+  const pages = await Promise.all(["/", "/produits", "/login"].map((c) => fetch(BASE + c)));
+  const nonces = new Set();
+  for (const r of pages) {
+    const csp = r.headers.get("content-security-policy") ?? "";
+    verifier(/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/.test(csp), `CSP absente ou faible : ${csp}`);
+    verifier(csp.includes("frame-ancestors 'none'") && csp.includes("object-src 'none'"), "CSP incomplète");
+    nonces.add(csp.match(/'nonce-([^']+)'/)[1]);
+    verifier(r.headers.get("x-content-type-options") === "nosniff", "X-Content-Type-Options manquant");
+    verifier(r.headers.get("referrer-policy") === "strict-origin-when-cross-origin", "Referrer-Policy manquant");
+    verifier(r.headers.get("x-frame-options") === "DENY", "X-Frame-Options manquant");
+    verifier(!r.headers.has("x-powered-by"), "X-Powered-By encore envoyé");
+  }
+  verifier(nonces.size === 3, "le nonce doit changer à chaque requête");
+  const image = await fetch(BASE + "/images/carreaux/madrid-carreau.webp");
+  verifier(image.headers.get("x-content-type-options") === "nosniff" && !image.headers.has("x-powered-by"), "en-têtes absents des fichiers");
+});
+
+test("carte Google Maps : se charge au clic malgré la CSP", async (nav) => {
+  await nav.ouvrir("/contact");
+  await nav.cliquer("Afficher la carte");
+  await nav.attendre("document.querySelector('iframe[src*=\"google.com/maps/embed\"]')");
+  await pause(1500);
+  const refus = nav.erreursConsole.filter((e) => /Content Security Policy|Refused/i.test(e));
+  verifier(refus.length === 0, `bloqué par la CSP : ${JSON.stringify(refus)}`);
 });
 
 test("une page inconnue renvoie 404", async () => {

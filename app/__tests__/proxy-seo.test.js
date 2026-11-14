@@ -4,13 +4,13 @@ import { NextRequest } from "next/server";
 
 let session;
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: () => ({
+  createServerClient: vi.fn(() => ({
     auth: {
       getUser: async () => ({ data: { user: session.user } }),
       signOut: session.signOut,
     },
     rpc: async () => ({ data: session.admin, error: null }),
-  }),
+  })),
 }));
 
 let produitsBase;
@@ -41,10 +41,45 @@ beforeEach(() => {
   session = { user: null, admin: false, signOut: vi.fn(async () => ({})) };
 });
 
-describe("proxy (accès au dashboard)", () => {
-  it("ne surveille que le dashboard et la page de connexion", () => {
-    expect(config.matcher).toEqual(["/dashboard/:path*", "/login"]);
+describe("proxy (sécurité de chaque page)", () => {
+  // Le motif de Next.js est une expression régulière (« : » mis à part).
+  const motif = new RegExp(`^${config.matcher[0].source}$`);
+
+  it("s'applique aux pages, pas aux fichiers statiques ni à l'API", () => {
+    for (const page of ["/", "/produits", "/produits/abc", "/simulateur", "/contact", "/dashboard", "/login"]) expect(motif.test(page), page).toBe(true);
+    for (const fichier of ["/api/instagram", "/_next/static/chunks/a.js", "/_next/image", "/images/carreaux/a.webp", "/icon.png", "/robots.txt", "/sitemap.xml"])
+      expect(motif.test(fichier), fichier).toBe(false);
   });
+
+  it("pose une CSP avec un nonce différent à chaque requête, transmis à la page", async () => {
+    const [a, b] = await Promise.all([proxy(requete("/")), proxy(requete("/produits"))]);
+    const csp = a.headers.get("content-security-policy");
+    expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
+    expect(csp).toContain("frame-ancestors 'none'");
+    const nonce = csp.match(/'nonce-([^']+)'/)[1];
+    expect(b.headers.get("content-security-policy")).not.toContain(nonce);
+    // Next.js lit le nonce dans les en-têtes de la requête transmise.
+    expect(a.headers.get("x-middleware-request-x-nonce")).toBe(nonce);
+  });
+
+  it("ne contacte pas Supabase pour une page publique", async () => {
+    const { createServerClient } = await import("@supabase/ssr");
+    createServerClient.mockClear();
+    await proxy(requete("/produits"));
+    await proxy(requete("/"));
+    expect(createServerClient).not.toHaveBeenCalled();
+    await proxy(requete("/login"));
+    expect(createServerClient).toHaveBeenCalledTimes(1);
+  });
+
+  it("garde la CSP sur les redirections", async () => {
+    const r = await proxy(requete("/dashboard"));
+    expect(destination(r)).toBe("/login");
+    expect(r.headers.get("content-security-policy")).toContain("'strict-dynamic'");
+  });
+});
+
+describe("proxy (accès au dashboard)", () => {
 
   it("renvoie un visiteur non connecté vers /login", async () => {
     expect(destination(await proxy(requete("/dashboard")))).toBe("/login");

@@ -1,4 +1,5 @@
 import "./globals.css";
+import { headers } from "next/headers";
 import { Newsreader, Instrument_Sans, Tajawal, Amiri } from "next/font/google";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -102,11 +103,15 @@ export default async function RootLayout({ children }) {
   // Langue lue dans le cookie : la page arrive directement dans la bonne
   // langue et le bon sens d'écriture (arabe : droite à gauche).
   const locale = await getLocaleServeur();
+  // Nonce de la politique de sécurité (proxy.js) : sans lui, le navigateur
+  // bloquerait le script du thème.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang={locale} dir={getDict(locale).dir} data-scroll-behavior="smooth" suppressHydrationWarning className={`${titre.variable} ${texte.variable} ${tajawal.variable} ${amiri.variable}`}>
       <head>
         {/* Applique le thème avant le premier affichage (évite le flash). */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html:
               "try{var t=localStorage.getItem('bocaro-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}",

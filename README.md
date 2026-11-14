@@ -191,6 +191,25 @@ Le token expire au bout d'environ 60 jours : le renouveler (étape 3).
 
 ---
 
+## Sécurité HTTP
+
+- **CSP** (`Content-Security-Policy`) posée par `proxy.js` sur chaque page,
+  construite dans `lib/securite.js` : seuls les scripts du site portant le
+  nonce de la requête s'exécutent (`'strict-dynamic'`), le site ne peut pas
+  être affiché dans un cadre (`frame-ancestors 'none'`), photos et API
+  limitées au projet Supabase du site, cadre intégré limité à Google Maps.
+  Un script en ligne ajouté à `app/layout.js` doit porter `nonce={nonce}`.
+- **Autres en-têtes**, sur toutes les réponses (`next.config.js`) :
+  `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`,
+  `Permissions-Policy`, `Cross-Origin-Opener-Policy` et, en production,
+  `Strict-Transport-Security`. `X-Powered-By` n'est plus envoyé.
+- Nouvelle source externe (images, API, cadre) : l'ajouter dans
+  `lib/securite.js`, sinon le navigateur la bloque (message
+  « Content Security Policy » dans la console). `npm run test:e2e` signale
+  tout blocage.
+
+---
+
 ## Tests
 
 Trois niveaux, du plus rapide au plus réaliste :
