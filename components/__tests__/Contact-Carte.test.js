@@ -14,6 +14,8 @@ describe("ContactForm", () => {
     expect(screen.getByLabelText("Email")).toHaveAttribute("type", "email");
     expect(screen.getByLabelText("Message").tagName).toBe("TEXTAREA");
     for (const champ of ["Nom complet", "Email", "Message"]) expect(screen.getByLabelText(champ)).toBeRequired();
+    expect(screen.getByText(/ne sont pas enregistrées par le site/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Politique de confidentialité" })).toHaveAttribute("href", "/confidentialite");
   });
 
   it("ouvre WhatsApp avec un message structuré et confirme l'envoi", async () => {

@@ -31,6 +31,8 @@ describe("Footer", () => {
     expect(within(pied).getByRole("link", { name: "Facebook" })).toHaveAttribute("href", "https://www.facebook.com/CAROANTIKA");
     expect(within(pied).getByRole("link", { name: "Instagram" })).toHaveAttribute("href", "https://www.instagram.com/caroantika_officiel/");
     expect(within(pied).getByText(new RegExp(`© ${new Date().getFullYear()} BOCARO`))).toBeInTheDocument();
+    expect(within(pied).getByRole("link", { name: "Confidentialité" })).toHaveAttribute("href", "/confidentialite");
+    expect(within(pied).getByRole("link", { name: "Mentions légales" })).toHaveAttribute("href", "/mentions-legales");
   });
 });
 

@@ -94,7 +94,13 @@ export default function Footer() {
 
       <div className="border-t border-white/15 py-6">
         <div className="container-app flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-bocaro-200/80">
-          <p>© {new Date().getFullYear()} BOCARO — {t.footer.rights}</p>
+          <p>
+            © {new Date().getFullYear()} BOCARO — {t.footer.rights}
+            <span aria-hidden="true" className="mx-2">·</span>
+            <Link href="/confidentialite" className="lien-anime hover:text-white">{t.footer.privacy}</Link>
+            <span aria-hidden="true" className="mx-2">·</span>
+            <Link href="/mentions-legales" className="lien-anime hover:text-white">{t.footer.legal}</Link>
+          </p>
           <p>{t.footer.founded}</p>
         </div>
       </div>

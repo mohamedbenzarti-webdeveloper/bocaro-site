@@ -12,6 +12,8 @@ export default async function sitemap() {
     { path: "/simulateur", priority: 0.8, changeFrequency: "monthly" },
     { path: "/a-propos", priority: 0.6, changeFrequency: "yearly" },
     { path: "/contact", priority: 0.6, changeFrequency: "yearly" },
+    { path: "/confidentialite", priority: 0.2, changeFrequency: "yearly" },
+    { path: "/mentions-legales", priority: 0.2, changeFrequency: "yearly" },
   ].map(({ path, ...reste }) => ({ url: `${SITE_URL}${path}`, lastModified: new Date(), ...reste }));
 
   // Lecture publique (clé anon, sans cookies) : la liste des produits est

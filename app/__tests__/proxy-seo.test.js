@@ -128,16 +128,18 @@ describe("sitemap", () => {
       "https://www.bocaro.test/simulateur",
       "https://www.bocaro.test/a-propos",
       "https://www.bocaro.test/contact",
+      "https://www.bocaro.test/confidentialite",
+      "https://www.bocaro.test/mentions-legales",
       "https://www.bocaro.test/produits/p1",
       "https://www.bocaro.test/produits/p2",
     ]);
     expect(urls.some((u) => u.includes("dashboard") || u.includes("login"))).toBe(false);
-    expect(entrees[6].lastModified.toISOString()).toBe("2026-03-04T00:00:00.000Z");
+    expect(entrees[8].lastModified.toISOString()).toBe("2026-03-04T00:00:00.000Z");
   });
 
   it("garde les pages fixes si la base est injoignable", async () => {
     produitsBase = new Error("hors ligne");
-    expect((await sitemap()).map((e) => e.url)).toHaveLength(5);
+    expect((await sitemap()).map((e) => e.url)).toHaveLength(7);
   });
 });
 

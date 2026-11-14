@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { lienWhatsApp, messageContact } from "../lib/whatsapp";
 
 // Formulaire de contact : ouvre WhatsApp avec le message pré-rempli.
@@ -79,6 +80,12 @@ export default function ContactForm({ c }) {
         <button type="submit" className="btn-primary w-full sm:w-auto">
           {c.submit}
         </button>
+        <p className="text-xs text-bocaro-600 leading-relaxed">
+          {c.privacyNote}{" "}
+          <Link href="/confidentialite" className="underline underline-offset-2 hover:text-brand-600">
+            {c.privacyLink}
+          </Link>
+        </p>
       </form>
     </>
   );

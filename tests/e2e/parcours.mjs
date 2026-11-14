@@ -158,7 +158,7 @@ function verifier(condition, message) {
 }
 
 test("chaque page publique répond et s'affiche sans erreur JavaScript ni blocage de la CSP", async (nav) => {
-  for (const chemin of ["/", "/produits", "/simulateur", "/a-propos", "/contact", "/login"]) {
+  for (const chemin of ["/", "/produits", "/simulateur", "/a-propos", "/contact", "/login", "/confidentialite", "/mentions-legales"]) {
     const reponse = await fetch(BASE + chemin);
     verifier(reponse.status === 200, `${chemin} : statut ${reponse.status}`);
     await nav.ouvrir(chemin);

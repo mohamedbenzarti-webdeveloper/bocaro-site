@@ -71,6 +71,9 @@ dossier `sql/` :
    JPEG / PNG / WebP de 5 Mo maximum
 7. `migration_v8.sql` — demandes de devis mises en pause (envoi fermé ; la
    table et les demandes reçues sont conservées)
+8. `migration_v9.sql` — demandes de devis supprimées automatiquement après
+   12 mois (tâche planifiée chaque nuit ; si l'extension `pg_cron` est
+   refusée : Supabase → Integrations → Cron → Enable, puis réexécuter)
 
 > Les demandes de devis sont **désactivées** pour le moment (formulaire et
 > section du dashboard retirés). Pour les réactiver : réexécuter
@@ -191,6 +194,20 @@ Le token expire au bout d'environ 60 jours : le renouveler (étape 3).
 
 ---
 
+## Données personnelles
+
+- Pages `/confidentialite` et `/mentions-legales` (FR / EN / AR), textes
+  dans `lib/legal.js`, liens dans le pied de page et sous le formulaire de
+  contact. À mettre à jour si une collecte change (nouveau formulaire,
+  mesure d'audience, nouveau service tiers) ; changer alors `MISE_A_JOUR`.
+- Durée de conservation des demandes : `RETENTION_DEVIS_MOIS` dans
+  `lib/legal.js` et `interval '12 months'` dans `sql/migration_v9.sql` ;
+  un test vérifie qu'ils restent identiques.
+- Les champs légaux laissés à `null` dans `lib/site.js` ne sont pas
+  affichés : les compléter avant la mise en ligne.
+
+---
+
 ## Sécurité HTTP
 
 - **CSP** (`Content-Security-Policy`) posée par `proxy.js` sur chaque page,
@@ -275,7 +292,9 @@ Pour un bug d'affichage propre au mobile, tester sur l'appareil réel : les
 - [ ] `npm audit --omit=dev` sans vulnérabilité
 - [ ] `npm test`, `npm run test:e2e` et `npm run build` sans erreur
 - [ ] Inscription publique Supabase désactivée, compte admin créé
-- [ ] Migrations `v7` et `v8` exécutées (stockage verrouillé, devis fermés)
+- [ ] Migrations `v7`, `v8` et `v9` exécutées (stockage verrouillé, devis fermés, conservation 12 mois)
+- [ ] Mentions légales complétées dans `lib/site.js` (forme juridique,
+      matricule fiscal, registre RNE, directeur de la publication, hébergeur)
 - [ ] Code envoyé sur le dépôt GitHub privé
 - [ ] Sitemap (`/sitemap.xml`) déclaré dans Google Search Console
 

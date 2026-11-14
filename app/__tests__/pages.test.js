@@ -199,6 +199,37 @@ describe("pages À propos et Contact", () => {
   });
 });
 
+describe("pages Confidentialité et Mentions légales", () => {
+  it("la politique de confidentialité annonce la durée de conservation et les droits", async () => {
+    await rendrePage((await import("../confidentialite/page")).default);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Politique de confidentialité");
+    expect(screen.getByRole("heading", { level: 2, name: "Durée de conservation" })).toBeInTheDocument();
+    expect(screen.getAllByText(/12 mois/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/loi organique n° 2004-63/)).toBeInTheDocument();
+    expect(screen.getByText(/bocaro-locale/)).toBeInTheDocument();
+    expect(document.querySelector("time")).toHaveAttribute("dateTime", "2026-11-14");
+  });
+
+  it("les mentions légales donnent l'éditeur et renvoient vers la confidentialité", async () => {
+    await rendrePage((await import("../mentions-legales/page")).default);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Mentions légales");
+    expect(screen.getByText(/Rue Ras Jedir, Soukra, Tunis, Tunisie/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Politique de confidentialité" })).toHaveAttribute("href", "/confidentialite");
+    expect(document.body.textContent).not.toMatch(/null|undefined/);
+  });
+
+  it("s'affichent en arabe", async () => {
+    locale = "ar";
+    await rendrePage((await import("../confidentialite/page")).default);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("سياسة الخصوصية");
+  });
+
+  it("ont leur titre et leur adresse canonique", async () => {
+    expect((await import("../confidentialite/page")).metadata.alternates.canonical).toBe("/confidentialite");
+    expect((await import("../mentions-legales/page")).metadata.alternates.canonical).toBe("/mentions-legales");
+  });
+});
+
 describe("connexion", () => {
   const Connexion = async () => (await import("../login/page")).default;
 
