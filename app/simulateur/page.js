@@ -51,6 +51,10 @@ export default function SimulateurPage() {
     if (produit) {
       setProduitActif(produit);
       setDepuisFiche(true);
+      // Réseau lent : le visiteur a pu choisir sa pièce et continuer avant
+      // la fin du chargement ; il attend alors à l'étape « Carrelage »
+      // (aucun carreau n'y était encore affiché) → on passe à la simulation.
+      setEtape((e) => (e === 2 ? 3 : e));
     }
   }, [produits]);
 

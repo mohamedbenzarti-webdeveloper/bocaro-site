@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { lienWhatsApp, messageContact } from "../lib/whatsapp";
 
 // Formulaire de contact : ouvre WhatsApp avec le message pré-rempli.
 // Textes fournis par la page (rendue par le serveur dans la bonne langue).
@@ -14,47 +15,29 @@ export default function ContactForm({ c }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Message structuré : salutation, coordonnées, message séparé, mention
-    // de la page d'origine. *texte* = gras, _texte_ = italique dans WhatsApp.
-    const texte = [
-      c.waGreeting,
-      "",
-      c.waIntro,
-      "",
-      `*${c.waSection}*`,
-      `• ${c.waName} : ${form.nom.trim()}`,
-      `• ${c.waEmail} : ${form.email.trim()}`,
-      "",
-      `*${c.waMessage}*`,
-      form.message.trim(),
-      "",
-      c.waThanks,
-      "",
-      `_${c.waFooter}_`,
-    ].join("\n");
-    window.open(
-      `https://wa.me/21698514014?text=${encodeURIComponent(texte)}`,
-      "_blank"
-    );
+    // Message structuré préparé par lib/whatsapp.js.
+    window.open(lienWhatsApp(messageContact(c, form)), "_blank");
     setEnvoye(true);
   };
 
   return (
     <>
       {envoye && (
-        <div className="mb-6 p-4 rounded-xl bg-green-100 text-green-800 text-sm">
+        <div role="status" className="mb-6 p-4 rounded-xl bg-green-100 text-green-800 text-sm">
           {c.successMsg}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-bocaro-900 mb-2">
+          <label htmlFor="contact-nom" className="block text-sm font-medium text-bocaro-900 mb-2">
             {c.nameLabel}
           </label>
           <input
+            id="contact-nom"
             type="text"
             name="nom"
+            autoComplete="name"
             required
             value={form.nom}
             onChange={handleChange}
@@ -63,12 +46,14 @@ export default function ContactForm({ c }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-bocaro-900 mb-2">
+          <label htmlFor="contact-email" className="block text-sm font-medium text-bocaro-900 mb-2">
             {c.emailLabel}
           </label>
           <input
+            id="contact-email"
             type="email"
             name="email"
+            autoComplete="email"
             required
             value={form.email}
             onChange={handleChange}
@@ -77,10 +62,11 @@ export default function ContactForm({ c }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-bocaro-900 mb-2">
+          <label htmlFor="contact-message" className="block text-sm font-medium text-bocaro-900 mb-2">
             {c.messageLabel}
           </label>
           <textarea
+            id="contact-message"
             name="message"
             required
             rows={5}

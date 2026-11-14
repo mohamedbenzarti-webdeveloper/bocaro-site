@@ -147,7 +147,7 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="min-[380px]:hidden flex items-center justify-between py-4">
-              <span className="text-sm text-bocaro-600">{t.nav.theme}</span>
+              <span className="text-sm text-bocaro-600">{t.nav.themeLabel}</span>
               <ThemeToggle />
             </div>
             <div className="mt-auto pt-10 [@media(max-height:500px)]:pt-5">

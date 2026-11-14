@@ -53,11 +53,13 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-bocaro-900 mb-1">
+            <label htmlFor="login-email" className="block text-sm font-medium text-bocaro-900 mb-1">
               Email
             </label>
             <input
+              id="login-email"
               type="email"
+              autoComplete="username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -66,11 +68,13 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-bocaro-900 mb-1">
+            <label htmlFor="login-mot-de-passe" className="block text-sm font-medium text-bocaro-900 mb-1">
               Mot de passe
             </label>
             <input
+              id="login-mot-de-passe"
               type="password"
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -79,7 +83,7 @@ export default function LoginPage() {
           </div>
 
           {erreur && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+            <p role="alert" className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
               {erreur}
             </p>
           )}

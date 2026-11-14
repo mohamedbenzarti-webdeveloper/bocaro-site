@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { annulerEnvois, creerProduit, modifierProduit } from "../actions/produits";
 import { createClient } from "../../lib/supabase/client";
+import { nomFichierSur } from "../../lib/supabase/stockage";
 import ColorPicker from "../../components/admin/ColorPicker";
 import DimensionPicker from "../../components/admin/DimensionPicker";
 import ImageUploader from "../../components/admin/ImageUploader";
@@ -21,27 +22,6 @@ const LANGUES_FORM = [
   { code: "_en", label: "English" },
   { code: "_ar", label: "العربية" },
 ];
-
-// Nom de fichier accepté par Supabase Storage (a-z 0-9 . _ -) :
-// "Anémone.png" → "anemone.png", "Carreau étoile (2).JPG" →
-// "carreau-etoile-2.jpg" ; un nom sans lettre latine (ex. arabe)
-// devient "image.webp". L'extension est conservée à part.
-function nomFichierSur(nom) {
-  const point = nom.lastIndexOf(".");
-  const base = point > 0 ? nom.slice(0, point) : nom;
-  const ext = point > 0 ? nom.slice(point + 1) : "";
-  const nettoyer = (s) =>
-    s
-      .replace(/œ/gi, "oe")
-      .replace(/æ/gi, "ae")
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  const extSure = nettoyer(ext);
-  return (nettoyer(base) || "image") + (extSure ? `.${extSure}` : "");
-}
 
 // Compression avant envoi : une photo de 1,5 à 3 Mo (PNG notamment)
 // dépassait le délai de 7 s de l'optimiseur d'images de Next.js
@@ -196,10 +176,11 @@ export default function ProductForm({ produit }) {
         {LANGUES_FORM.map((l) => (
           <div key={l.code} hidden={langueActive !== l.code} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-bocaro-600 mb-1">
+              <label htmlFor={`produit-nom${l.code}`} className="block text-xs font-medium text-bocaro-600 mb-1">
                 Nom du produit {l.requis ? "" : "(optionnel)"}
               </label>
               <input
+                id={`produit-nom${l.code}`}
                 name={`nom${l.code}`}
                 required={l.requis}
                 defaultValue={produit?.[`nom${l.code}`] ?? ""}
@@ -209,10 +190,11 @@ export default function ProductForm({ produit }) {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-bocaro-600 mb-1">
+              <label htmlFor={`produit-description${l.code}`} className="block text-xs font-medium text-bocaro-600 mb-1">
                 Description {l.requis ? "" : "(optionnel)"}
               </label>
               <textarea
+                id={`produit-description${l.code}`}
                 name={`description${l.code}`}
                 rows={4}
                 dir={l.code === "_ar" ? "rtl" : "ltr"}
@@ -229,10 +211,11 @@ export default function ProductForm({ produit }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-bocaro-900 mb-1">
+        <label htmlFor="produit-type" className="block text-sm font-medium text-bocaro-900 mb-1">
           Type
         </label>
         <select
+          id="produit-type"
           name="type"
           required
           defaultValue={produit?.type ?? TYPES[0]}
@@ -264,10 +247,11 @@ export default function ProductForm({ produit }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-bocaro-900 mb-1">
+        <label htmlFor="produit-prix" className="block text-sm font-medium text-bocaro-900 mb-1">
           Prix (DT / m²)
         </label>
         <input
+          id="produit-prix"
           name="prix"
           type="number"
           min="0"
@@ -286,7 +270,7 @@ export default function ProductForm({ produit }) {
       </div>
 
       {erreur && (
-        <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+        <p role="alert" className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
           {erreur}
         </p>
       )}

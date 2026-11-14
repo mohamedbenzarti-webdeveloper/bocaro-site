@@ -6,6 +6,7 @@ import { construireCanvasResultat } from "./exportCanvas";
 import { formatActif, reglagesPourRendu } from "../../lib/simulateur/tileSize";
 import { translateFixedField, productTypeTranslations } from "../../lib/translations";
 import { SITE_URL } from "../../lib/site";
+import { lienWhatsApp, messageSimulation } from "../../lib/whatsapp";
 
 export default function StepResultat({
   room,
@@ -81,35 +82,21 @@ export default function StepResultat({
   const format = formatActif(produit, reglages.format);
   const pieceEtSurface = surfaceLabel ? `${roomLabel} — ${surfaceLabel}` : roomLabel;
 
-  // Message WhatsApp : présentation, récapitulatif de la simulation (avec
-  // le lien de la fiche produit), demande précise, formule de politesse.
-  // *texte* = gras dans WhatsApp. La surface est laissée à compléter.
-  function lienWhatsApp() {
-    const w = texts.wa;
-    const type = translateFixedField(productTypeTranslations, produit?.type, locale);
-    const prix = Number(produit?.prix) > 0 ? `${produit.prix} ${uniteLabel}` : null;
-    const pose = `${w.rotation} ${reglages.rotation ?? 0}° · ${w.joint} ${reglages.jointWidth} mm`;
-    const lignes = [
-      w.greeting,
-      "",
-      w.intro,
-      "",
-      `*${w.sectionSimulation}*`,
-      `• ${w.product} : ${nomProduit}${type ? ` (${type})` : ""}`,
-      prix ? `• ${w.price} : ${prix}` : null,
-      `• ${w.room} : ${pieceEtSurface}`,
-      format ? `• ${w.format} : ${format}` : null,
-      `• ${w.pose} : ${pose}`,
-      produit?.id ? `• ${w.link} : ${SITE_URL}/produits/${produit.id}` : null,
-      "",
-      `*${w.sectionRequest}*`,
-      `• ${w.surface}`,
-      ...w.requests.map((r) => `• ${r}`),
-      "",
-      w.thanks,
-      w.signature,
-    ].filter((l) => l !== null);
-    return `https://wa.me/21698514014?text=${encodeURIComponent(lignes.join("\n"))}`;
+  // Message WhatsApp préparé par lib/whatsapp.js (récapitulatif de la
+  // simulation avec le lien de la fiche, demande précise, politesse).
+  function lienVersWhatsApp() {
+    return lienWhatsApp(
+      messageSimulation(texts.wa, {
+        nomProduit,
+        type: translateFixedField(productTypeTranslations, produit?.type, locale),
+        prix: Number(produit?.prix) > 0 ? `${produit.prix} ${uniteLabel}` : null,
+        piece: pieceEtSurface,
+        format,
+        rotation: reglages.rotation ?? 0,
+        joint: reglages.jointWidth,
+        lienFiche: produit?.id ? `${SITE_URL}/produits/${produit.id}` : null,
+      })
+    );
   }
 
   return (
@@ -171,7 +158,7 @@ export default function StepResultat({
           {texts.shareButton}
         </button>
         <a
-          href={lienWhatsApp()}
+          href={lienVersWhatsApp()}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-outline text-sm py-2.5"
