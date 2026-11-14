@@ -1,0 +1,107 @@
+// Fausse base Supabase en mémoire pour tester les actions serveur sans
+// réseau. Elle imite la petite partie de l'API utilisée par le projet :
+//   from("produits").select().eq().single() / insert() / update().eq() / delete().eq()
+//   storage.from(bucket).list() / remove() / upload() / getPublicUrl()
+//   auth.getUser() / auth.signOut() / rpc("is_admin")
+// Chaque appel est noté dans `appels` pour les vérifications.
+import { vi } from "vitest";
+
+export const URL_STOCKAGE = "https://projet-test.supabase.co/storage/v1/object/public/produits/";
+export const urlPhoto = (nom) => URL_STOCKAGE + nom;
+
+export function fauxSupabase({
+  user = { id: "u1", email: "directeur@bocaro.tn" },
+  admin = true,
+  produits = [],
+  fichiers = [],
+  erreurs = {},
+} = {}) {
+  const etat = {
+    produits: produits.map((p) => ({ ...p })),
+    fichiers: fichiers.map((f) => ({ ...f })),
+  };
+  const appels = { insert: [], update: [], delete: [], remove: [], list: [], upload: [] };
+
+  function requete(table) {
+    const filtres = [];
+    let operation = { type: "select" };
+    const executer = () => {
+      const lignes = etat[table].filter((l) => filtres.every(([col, val]) => String(l[col]) === String(val)));
+      switch (operation.type) {
+        case "insert":
+          if (erreurs.insert) return { error: { message: erreurs.insert } };
+          etat[table].push({ id: `nouveau-${etat[table].length + 1}`, ...operation.valeur });
+          return { error: null };
+        case "update":
+          if (erreurs.update) return { error: { message: erreurs.update } };
+          lignes.forEach((l) => Object.assign(l, operation.valeur));
+          return { error: null };
+        case "delete":
+          if (erreurs.delete) return { error: { message: erreurs.delete } };
+          etat[table] = etat[table].filter((l) => !lignes.includes(l));
+          return { error: null };
+        default:
+          if (erreurs.select) return { data: null, error: { message: erreurs.select } };
+          // Comme l'API réelle, la lecture renvoie des copies.
+          if (operation.single)
+            return { data: lignes[0] ? structuredClone(lignes[0]) : null, error: lignes[0] ? null : { message: "introuvable" } };
+          return { data: structuredClone(lignes), error: null };
+      }
+    };
+    const constructeur = {
+      select: () => constructeur,
+      eq: (col, val) => (filtres.push([col, val]), constructeur),
+      single: () => ((operation = { ...operation, single: true }), constructeur),
+      insert: (valeur) => {
+        appels.insert.push(valeur);
+        operation = { type: "insert", valeur };
+        return constructeur;
+      },
+      update: (valeur) => {
+        appels.update.push(valeur);
+        operation = { type: "update", valeur };
+        return constructeur;
+      },
+      delete: () => {
+        operation = { type: "delete" };
+        appels.delete.push(filtres);
+        return constructeur;
+      },
+      then: (ok, ko) => Promise.resolve(executer()).then(ok, ko),
+    };
+    return constructeur;
+  }
+
+  const stockage = (bucket) => ({
+    list: async (dossier, options) => {
+      appels.list.push({ bucket, dossier, options });
+      if (erreurs.list) return { data: null, error: { message: erreurs.list } };
+      const { limit = 100, offset = 0 } = options ?? {};
+      return { data: etat.fichiers.slice(offset, offset + limit), error: null };
+    },
+    remove: async (chemins) => {
+      appels.remove.push(chemins);
+      if (erreurs.remove) return { data: null, error: { message: erreurs.remove } };
+      etat.fichiers = etat.fichiers.filter((f) => !chemins.includes(f.name));
+      return { data: chemins, error: null };
+    },
+    upload: async (chemin, fichier, options) => {
+      appels.upload.push({ chemin, fichier, options });
+      if (erreurs.upload) return { error: { message: erreurs.upload } };
+      return { data: { path: chemin }, error: null };
+    },
+    getPublicUrl: (chemin) => ({ data: { publicUrl: URL_STOCKAGE + chemin } }),
+  });
+
+  return {
+    etat,
+    appels,
+    from: requete,
+    storage: { from: stockage },
+    auth: {
+      getUser: vi.fn(async () => ({ data: { user } })),
+      signOut: vi.fn(async () => ({ error: null })),
+    },
+    rpc: vi.fn(async (nom) => (nom === "is_admin" ? { data: admin, error: null } : { data: null, error: { message: "rpc inconnue" } })),
+  };
+}

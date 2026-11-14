@@ -1,0 +1,116 @@
+// Protection du dashboard (proxy.js) et référencement (sitemap, robots).
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { NextRequest } from "next/server";
+
+let session;
+vi.mock("@supabase/ssr", () => ({
+  createServerClient: () => ({
+    auth: {
+      getUser: async () => ({ data: { user: session.user } }),
+      signOut: session.signOut,
+    },
+    rpc: async () => ({ data: session.admin, error: null }),
+  }),
+}));
+
+let produitsBase;
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    from: () => ({
+      select: async () => {
+        if (produitsBase instanceof Error) throw produitsBase;
+        return { data: produitsBase, error: null };
+      },
+    }),
+  }),
+}));
+
+const { proxy, config } = await import("../../proxy");
+const sitemap = (await import("../sitemap")).default;
+const robots = (await import("../robots")).default;
+
+const requete = (chemin) => new NextRequest(new URL(chemin, "https://www.bocaro.test"));
+const destination = (reponse) => {
+  const lieu = reponse.headers.get("location");
+  if (!lieu) return null;
+  const url = new URL(lieu);
+  return url.pathname + url.search;
+};
+
+beforeEach(() => {
+  session = { user: null, admin: false, signOut: vi.fn(async () => ({})) };
+});
+
+describe("proxy (accès au dashboard)", () => {
+  it("ne surveille que le dashboard et la page de connexion", () => {
+    expect(config.matcher).toEqual(["/dashboard/:path*", "/login"]);
+  });
+
+  it("renvoie un visiteur non connecté vers /login", async () => {
+    expect(destination(await proxy(requete("/dashboard")))).toBe("/login");
+    expect(destination(await proxy(requete("/dashboard/abc")))).toBe("/login");
+  });
+
+  it("laisse un visiteur non connecté ouvrir /login", async () => {
+    const r = await proxy(requete("/login"));
+    expect(destination(r)).toBeNull();
+  });
+
+  it("déconnecte un compte non administrateur qui ouvre le dashboard", async () => {
+    session = { ...session, user: { id: "u2" }, admin: false };
+    expect(destination(await proxy(requete("/dashboard")))).toBe("/login?erreur=acces");
+    expect(session.signOut).toHaveBeenCalled();
+  });
+
+  it("laisse un compte non administrateur sur /login (message d'erreur)", async () => {
+    session = { ...session, user: { id: "u2" }, admin: false };
+    expect(destination(await proxy(requete("/login")))).toBeNull();
+    expect(session.signOut).not.toHaveBeenCalled();
+  });
+
+  it("laisse passer un administrateur sur le dashboard", async () => {
+    session = { ...session, user: { id: "u1" }, admin: true };
+    expect(destination(await proxy(requete("/dashboard/nouveau")))).toBeNull();
+  });
+
+  it("envoie un administrateur déjà connecté de /login vers le dashboard", async () => {
+    session = { ...session, user: { id: "u1" }, admin: true };
+    expect(destination(await proxy(requete("/login")))).toBe("/dashboard");
+  });
+});
+
+describe("sitemap", () => {
+  it("liste les pages publiques et chaque fiche produit", async () => {
+    produitsBase = [
+      { id: "p1", created_at: "2026-01-02T00:00:00Z" },
+      { id: "p2", created_at: "2026-03-04T00:00:00Z" },
+    ];
+    const entrees = await sitemap();
+    const urls = entrees.map((e) => e.url);
+    expect(urls).toEqual([
+      "https://www.bocaro.test",
+      "https://www.bocaro.test/produits",
+      "https://www.bocaro.test/simulateur",
+      "https://www.bocaro.test/a-propos",
+      "https://www.bocaro.test/contact",
+      "https://www.bocaro.test/produits/p1",
+      "https://www.bocaro.test/produits/p2",
+    ]);
+    expect(urls.some((u) => u.includes("dashboard") || u.includes("login"))).toBe(false);
+    expect(entrees[6].lastModified.toISOString()).toBe("2026-03-04T00:00:00.000Z");
+  });
+
+  it("garde les pages fixes si la base est injoignable", async () => {
+    produitsBase = new Error("hors ligne");
+    expect((await sitemap()).map((e) => e.url)).toHaveLength(5);
+  });
+});
+
+describe("robots", () => {
+  it("cache l'administration aux moteurs de recherche et indique le sitemap", () => {
+    expect(robots()).toEqual({
+      rules: { userAgent: "*", allow: "/", disallow: ["/dashboard", "/login", "/api/"] },
+      sitemap: "https://www.bocaro.test/sitemap.xml",
+    });
+  });
+});

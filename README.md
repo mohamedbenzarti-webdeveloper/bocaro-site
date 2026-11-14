@@ -29,7 +29,9 @@ npm run dev                  # http://localhost:3000
 |---|---|
 | `npm run dev` | Développement (rechargement automatique) |
 | `npm run build` puis `npm run start` | Production |
-| `npm test` | Tests unitaires (Vitest) |
+| `npm test` | Tests unitaires et de composants (Vitest, ~270 tests, ~15 s) |
+| `npm run test:couverture` | Même chose + rapport de couverture (`coverage/index.html`) |
+| `npm run test:e2e` | Tests de bout en bout dans Chrome (serveur lancé) |
 | `npm audit --omit=dev` | Vulnérabilités des dépendances du site en ligne |
 
 ⚠️ **Ne jamais lancer `npm run build` pendant que `npm run dev` tourne** :
@@ -189,6 +191,31 @@ Le token expire au bout d'environ 60 jours : le renouveler (étape 3).
 
 ---
 
+## Tests
+
+Trois niveaux, du plus rapide au plus réaliste :
+
+| Niveau | Où | Ce qui est vérifié |
+|---|---|---|
+| Logique et serveur (Node) | `lib/**/__tests__`, `app/actions/__tests__`, `app/__tests__/proxy-seo.test.js` | Actions du dashboard (droits, création, modification, suppression, nettoyage du stockage), protection du dashboard (`proxy.js`), lecture des produits, Instagram, langue, sitemap, robots, traductions (mêmes clés dans les 3 langues, aucune clé en double), pièces du simulateur, messages WhatsApp, calcul des formats, homographie |
+| Composants (navigateur simulé, jsdom) | `components/__tests__`, `app/**/__tests__` | Recherche et filtres, pagination, catalogue, fiche produit, contact, carte, galerie, navigation, langue, thème, pages serveur (contenu, référencement, données structurées), connexion, dashboard, parcours complet du simulateur |
+| Bout en bout (vrai Chrome) | `tests/e2e/parcours.mjs` | Le site réel : pages sans erreur, 404, redirection du dashboard, filtres, présélection fiche → simulateur, rendu du sol réellement dessiné, WhatsApp, arabe, aucun débordement de 320 à 1920 px, menu mobile |
+
+- `tests/setup.js` remplace `next/link`, `next/image` et `next/navigation`
+  par des versions de test ; `tests/fauxSupabase.js` est une base Supabase
+  en mémoire (aucun accès à la vraie base pendant les tests).
+- Le rendu WebGL / Canvas du simulateur n'est pas exécutable dans jsdom :
+  il est couvert par le test de bout en bout, qui vérifie dans Chrome que
+  le sol contient bien des carreaux.
+- `npm run test:e2e` : lancer d'abord `npm run dev` (ou définir `E2E_URL`).
+  Par défaut, les photos Supabase y sont remplacées par un carreau local
+  pour ne pas dépendre du réseau (`E2E_PHOTOS_RESEAU=1` pour les vraies).
+  Chrome est cherché à l'emplacement standard (`CHROME_PATH` sinon).
+- Nouveau test : fichier `__tests__/<nom>.test.js` à côté du code ; ajouter
+  `// @vitest-environment jsdom` en première ligne pour un composant.
+
+---
+
 ## Git
 
 Le projet est versionné avec Git (branche `main`). Le `.gitignore` exclut
@@ -227,7 +254,7 @@ Pour un bug d'affichage propre au mobile, tester sur l'appareil réel : les
 
 - [ ] `NEXT_PUBLIC_SITE_URL` défini chez l'hébergeur
 - [ ] `npm audit --omit=dev` sans vulnérabilité
-- [ ] `npm test` et `npm run build` sans erreur
+- [ ] `npm test`, `npm run test:e2e` et `npm run build` sans erreur
 - [ ] Inscription publique Supabase désactivée, compte admin créé
 - [ ] Migrations `v7` et `v8` exécutées (stockage verrouillé, devis fermés)
 - [ ] Code envoyé sur le dépôt GitHub privé
