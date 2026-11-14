@@ -44,11 +44,12 @@ insert into storage.buckets (id, name, public)
 values ('produits', 'produits', true)
 on conflict (id) do nothing;
 
--- Tout le monde peut voir les images (site public)
+-- Pas de politique de lecture (SELECT) pour les visiteurs : le bucket est
+-- public, ses images sont servies par leur URL publique sans politique.
+-- Une politique SELECT sans rôle laisserait n'importe qui LISTER tous les
+-- fichiers du bucket avec la clé publique du site. La lecture via l'API
+-- est réservée aux administrateurs (sql/migration_v7.sql).
 drop policy if exists "Lecture publique des images" on storage.objects;
-create policy "Lecture publique des images"
-  on storage.objects for select
-  using (bucket_id = 'produits');
 
 -- Seul un utilisateur connecté (le directeur) peut envoyer des images
 drop policy if exists "Upload reserve aux connectes" on storage.objects;
