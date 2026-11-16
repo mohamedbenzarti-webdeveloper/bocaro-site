@@ -1,11 +1,8 @@
 import { lireProduits } from "../../lib/supabase/public";
 import CatalogueGrid from "../../components/CatalogueGrid";
 
-// Cache la page pendant 60 secondes, puis régénère en arrière-plan
-// (ISR — Incremental Static Regeneration). Les Server Actions
-// (créer / modifier / supprimer un produit) appellent
-// revalidatePath("/produits") pour invalider le cache immédiatement.
-export const revalidate = 60;
+// Page rendue à chaque visite ; la liste des produits vient du cache de
+// lib/supabase/public.js (60 s, vidé par les actions du dashboard).
 
 export const metadata = {
   title: "Produits",

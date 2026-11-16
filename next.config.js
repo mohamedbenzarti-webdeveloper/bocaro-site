@@ -22,6 +22,18 @@ const ENTETES_SECURITE = [
     : []),
 ];
 
+// Seul le projet Supabase du site peut fournir des photos à l'optimiseur
+// d'images (sinon n'importe quel projet *.supabase.co pourrait s'en servir
+// pour faire redimensionner ses images à nos frais).
+function hoteSupabase() {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname;
+  } catch {
+    return null;
+  }
+}
+const HOTE_SUPABASE = hoteSupabase();
+
 const nextConfig = {
   reactStrictMode: true,
   // Ne révèle pas la technologie du serveur (en-tête X-Powered-By).
@@ -35,7 +47,9 @@ const nextConfig = {
     // (redimensionnement + WebP/AVIF à la taille réellement affichée).
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
+      ...(HOTE_SUPABASE
+        ? [{ protocol: "https", hostname: HOTE_SUPABASE, pathname: "/storage/v1/object/public/produits/**" }]
+        : []),
       { protocol: "https", hostname: "**.cdninstagram.com" },
       { protocol: "https", hostname: "**.fbcdn.net" },
     ],

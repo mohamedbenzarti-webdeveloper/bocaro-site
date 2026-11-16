@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { SITE_URL } from "../lib/site";
+import { MISE_A_JOUR } from "../lib/legal";
 
 // Régénéré toutes les heures : un produit ajouté depuis le dashboard y
 // apparaît sans redéploiement.
@@ -12,9 +13,12 @@ export default async function sitemap() {
     { path: "/simulateur", priority: 0.8, changeFrequency: "monthly" },
     { path: "/a-propos", priority: 0.6, changeFrequency: "yearly" },
     { path: "/contact", priority: 0.6, changeFrequency: "yearly" },
-    { path: "/confidentialite", priority: 0.2, changeFrequency: "yearly" },
-    { path: "/mentions-legales", priority: 0.2, changeFrequency: "yearly" },
-  ].map(({ path, ...reste }) => ({ url: `${SITE_URL}${path}`, lastModified: new Date(), ...reste }));
+    { path: "/confidentialite", priority: 0.2, changeFrequency: "yearly", lastModified: new Date(MISE_A_JOUR) },
+    { path: "/mentions-legales", priority: 0.2, changeFrequency: "yearly", lastModified: new Date(MISE_A_JOUR) },
+    // Pas de date pour les autres pages fixes : en mettre une nouvelle à
+    // chaque régénération ferait croire à Google qu'elles changent sans
+    // cesse (il finit alors par ignorer toutes les dates du sitemap).
+  ].map(({ path, ...reste }) => ({ url: `${SITE_URL}${path}`, ...reste }));
 
   // Lecture publique (clé anon, sans cookies) : la liste des produits est
   // de toute façon visible par tous.
@@ -24,10 +28,12 @@ export default async function sitemap() {
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
-    const { data } = await supabase.from("produits").select("id, created_at");
+    // select("*") : fonctionne avant comme après migration_v12.sql (colonne
+    // updated_at, date de dernière modification).
+    const { data } = await supabase.from("produits").select("*");
     produits = (data ?? []).map((p) => ({
       url: `${SITE_URL}/produits/${p.id}`,
-      lastModified: new Date(p.created_at),
+      lastModified: new Date(p.updated_at ?? p.created_at),
       changeFrequency: "monthly",
       priority: 0.7,
     }));

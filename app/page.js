@@ -4,6 +4,7 @@ import { lireProduits } from "../lib/supabase/public";
 import { lireDerniersPostsInstagram } from "../lib/instagram";
 import { getLocaleServeur } from "../lib/locale-server";
 import GalerieSlider from "../components/GalerieSlider";
+import { anneesExperience } from "../lib/site";
 // Photos de carreaux BOCARO (faces recadrées dans public/images/carreaux).
 const face = (nom) => `/images/carreaux/${nom}-carreau.webp`;
 import {
@@ -105,7 +106,7 @@ export default async function HomePage() {
               {h.stats.map((s) => (
                 <div key={s.label} className="flex flex-col-reverse gap-1">
                   <dt className="text-xs text-bocaro-600">{s.label}</dt>
-                  <dd className="font-serif text-2xl md:text-[1.75rem] leading-tight text-bocaro-950 whitespace-nowrap">{s.value}</dd>
+                  <dd className="font-serif text-2xl md:text-[1.75rem] leading-tight text-bocaro-950 whitespace-nowrap">{s.value.replace("{annees}", anneesExperience())}</dd>
                 </div>
               ))}
             </dl>

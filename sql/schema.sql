@@ -1,4 +1,5 @@
 -- À exécuter dans Supabase : Project → SQL Editor → New query → coller → Run
+-- Peut être réexécuté sans erreur ni retour en arrière sur la sécurité.
 -- (pour un projet Supabase tout neuf, ce seul fichier suffit — pas
 -- besoin de migration_v2.sql en plus, il est déjà inclus ici)
 
@@ -26,24 +27,46 @@ grant select, insert, update, delete on table public.produits to authenticated;
 grant select on table public.produits to anon;
 
 -- Tout le monde (site public) peut LIRE les produits
+drop policy if exists "Lecture publique des produits" on produits;
 create policy "Lecture publique des produits"
   on produits for select
   using (true);
 
--- Seul un utilisateur connecté (le directeur) peut ajouter
-create policy "Ajout reserve aux connectes"
-  on produits for insert
-  with check (auth.role() = 'authenticated');
+-- Écriture : règles provisoires « utilisateur connecté », remplacées par
+-- « administrateur » dans migration_v5.sql. Elles ne sont créées que si la
+-- v5 n'a pas encore été exécutée (table admins absente) : réexécuter ce
+-- fichier sur une base à jour ne rouvre donc jamais l'écriture à tout
+-- compte connecté.
+do $$
+begin
+  if to_regclass('public.admins') is null then
+    drop policy if exists "Ajout reserve aux connectes" on produits;
+    create policy "Ajout reserve aux connectes"
+      on produits for insert
+      with check (auth.role() = 'authenticated');
 
--- Seul un utilisateur connecté peut modifier
-create policy "Modification reservee aux connectes"
-  on produits for update
-  using (auth.role() = 'authenticated');
+    drop policy if exists "Modification reservee aux connectes" on produits;
+    create policy "Modification reservee aux connectes"
+      on produits for update
+      using (auth.role() = 'authenticated');
 
--- Seul un utilisateur connecté peut supprimer
-create policy "Suppression reservee aux connectes"
-  on produits for delete
-  using (auth.role() = 'authenticated');
+    drop policy if exists "Suppression reservee aux connectes" on produits;
+    create policy "Suppression reservee aux connectes"
+      on produits for delete
+      using (auth.role() = 'authenticated');
+
+    drop policy if exists "Upload reserve aux connectes" on storage.objects;
+    create policy "Upload reserve aux connectes"
+      on storage.objects for insert
+      with check (bucket_id = 'produits' and auth.role() = 'authenticated');
+
+    drop policy if exists "Suppression images reservee aux connectes" on storage.objects;
+    create policy "Suppression images reservee aux connectes"
+      on storage.objects for delete
+      using (bucket_id = 'produits' and auth.role() = 'authenticated');
+  end if;
+end;
+$$;
 
 -- Bucket de stockage pour les photos produits --------------------------
 insert into storage.buckets (id, name, public)
@@ -56,11 +79,3 @@ on conflict (id) do nothing;
 -- fichiers du bucket avec la clé publique du site. La lecture via l'API
 -- est réservée aux administrateurs (sql/migration_v7.sql).
 drop policy if exists "Lecture publique des images" on storage.objects;
-
-create policy "Upload reserve aux connectes"
-  on storage.objects for insert
-  with check (bucket_id = 'produits' and auth.role() = 'authenticated');
-
-create policy "Suppression images reservee aux connectes"
-  on storage.objects for delete
-  using (bucket_id = 'produits' and auth.role() = 'authenticated');

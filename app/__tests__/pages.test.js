@@ -70,6 +70,16 @@ describe("accueil", () => {
     expect(screen.queryByRole("heading", { level: 3, name: "Lagon" })).not.toBeInTheDocument(); // 3 au maximum
   });
 
+  it("calcule les années d'expérience depuis 2006 (jamais un chiffre figé)", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2031-03-01"));
+    await rendrePage(Accueil);
+    vi.useRealTimers();
+    const chiffre = screen.getByText("Années d'expérience").parentElement.querySelector("dd");
+    expect(chiffre).toHaveTextContent("25+");
+    expect(document.body.textContent).not.toContain("{annees}");
+  });
+
   it("met en avant une vraie photo de produit et alimente la galerie", async () => {
     await rendrePage(Accueil);
     // Avoine a une 2e photo (mise en situation) : elle ouvre la page.
@@ -104,7 +114,6 @@ describe("accueil", () => {
 describe("page Produits", () => {
   it("affiche le catalogue de la base et décrit la page aux moteurs de recherche", async () => {
     const module = await import("../produits/page");
-    expect(module.revalidate).toBe(60);
     expect(module.metadata.alternates.canonical).toBe("/produits");
     await rendrePage(module.default);
     expect(screen.getAllByRole("article")).toHaveLength(4);
@@ -293,6 +302,20 @@ describe("connexion", () => {
     await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith("/dashboard"));
   });
 
+  it("explique le refus quand le proxy renvoie ici (?erreur=acces)", async () => {
+    window.history.pushState({}, "", "/login?erreur=acces");
+    const Page = await Connexion();
+    render(<Page />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Ce compte n'a pas accès à l'espace direction.");
+    window.history.pushState({}, "", "/");
+  });
+
+  it("n'affiche aucune erreur sur une connexion normale", async () => {
+    const Page = await Connexion();
+    render(<Page />);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("refuse un mauvais mot de passe sans dire lequel des deux est faux", async () => {
     base.auth.signInWithPassword = vi.fn(async () => ({ error: { message: "Invalid login credentials" } }));
     await seConnecter("x@y.tn", "faux");
@@ -372,9 +395,17 @@ describe("mise en page générale", () => {
     const html = renderToStaticMarkup(await RootLayout({ children: <main>page</main> }));
     expect(html).toMatch(/<html[^>]* lang="ar"[^>]* dir="rtl"/);
     expect(html).toContain('"@type":"HomeAndConstructionBusiness"');
+    // Le logo de la fiche entreprise est le vrai logo, pas une photo.
+    const fiche = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/)[1]);
+    expect(fiche.logo).toMatch(/\/images\/logo-oiseau\.png$/);
+    expect(fiche.image).toMatch(/\/images\/simulateur\/salon\.jpg$/);
     expect(html).toContain("localStorage.getItem('bocaro-theme')");
     // Le script du thème porte le nonce, sinon la CSP le bloquerait.
     expect(html).toMatch(/<script nonce="nonce-de-test">try\{var t=localStorage/);
     expect(html).toContain("<main>page</main>");
+    // Lien d'évitement : premier lien de la page, vers le contenu principal.
+    expect(html.match(/<a [^>]*>/)[0]).toContain('href="#contenu"');
+    expect(html).toContain("الانتقال إلى المحتوى");
+    expect(html).toMatch(/<main id="contenu" tabindex="-1"/i);
   });
 });

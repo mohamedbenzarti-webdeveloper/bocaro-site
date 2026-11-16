@@ -63,10 +63,17 @@ Dans Supabase → **SQL Editor**, exécuter dans cet ordre les fichiers du
 dossier `sql/` :
 
 1. `schema.sql` — table `produits` et stockage d'images `produits` (inclut la v2)
+   ; réexécutable sans risque (ne recrée pas les anciennes règles d'écriture
+   si la v5 est déjà passée)
 2. `migration_v3.sql` — traductions des produits (EN / AR)
 3. `migration_v5.sql` — écriture réservée aux administrateurs (table `admins`, fonction `is_admin`)
 4. `migration_v7.sql` — stockage verrouillé : plus de listage public du bucket,
    JPEG / PNG / WebP de 5 Mo maximum
+5. `migration_v11.sql` — contraintes sur les produits (longueur des textes,
+   type connu, prix de 0 à 100 000 DT, nombre de photos) ; mêmes limites que
+   `lib/validation-produit.js`, vérifiées par un test
+6. `migration_v12.sql` — date de dernière modification des produits
+   (`updated_at`, tenue par un déclencheur), utilisée par le sitemap
 
 > Les numéros manquants (v4, v6, v8, v9) concernaient l'ancienne table
 > `demandes_devis`, supprimée : les demandes de devis passent uniquement par
@@ -98,7 +105,6 @@ app/
   login/                   Connexion administrateur
   dashboard/               Gestion des produits et nettoyage du stockage (admins)
   actions/produits.js      Actions serveur (produits, photos du stockage)
-  api/instagram/route.js   Fil Instagram (token côté serveur, cache 6 h)
   sitemap.js  robots.js    Référencement
 components/                Navbar, Footer, Pagination, GalerieSlider, ProductDetail…
 components/RechercheProduits.js  Recherche partagée (page Produits + simulateur)
@@ -213,6 +219,26 @@ Le token expire au bout d'environ 60 jours : le renouveler (étape 3).
 
 ---
 
+## Cache
+
+- **Les pages ne sont pas mises en cache** : elles sont toutes rendues à
+  chaque visite (`ƒ` dans `npm run build`). C'est imposé par la CSP avec
+  nonce (un nonce différent par réponse) et par la langue lue dans un
+  cookie. Inutile d'ajouter `export const revalidate` dans une page : il
+  serait sans effet.
+- **Ce qui est en cache, ce sont les données** :
+  - produits (`lib/supabase/public.js`) : 60 s au plus, étiquette
+    `produits`, vidée immédiatement par les actions du dashboard
+    (`updateTag`) ; un produit ajouté, modifié ou supprimé apparaît dès la
+    visite suivante sur l'accueil, le catalogue et sa fiche ;
+  - fil Instagram : 15 min ;
+  - `sitemap.xml` : seule route statique, régénérée toutes les heures.
+- Conséquence pour l'hébergement : chaque visite fait travailler le
+  serveur (rendu React), mais sans appel à Supabase tant que le cache est
+  valide. Largement suffisant pour le trafic d'un site vitrine.
+
+---
+
 ## Sécurité HTTP
 
 - **CSP** (`Content-Security-Policy`) posée par `proxy.js` sur chaque page,
@@ -297,7 +323,7 @@ Pour un bug d'affichage propre au mobile, tester sur l'appareil réel : les
 - [ ] `npm audit --omit=dev` sans vulnérabilité
 - [ ] `npm test`, `npm run test:e2e` et `npm run build` sans erreur
 - [ ] Inscription publique Supabase désactivée, compte admin créé
-- [ ] Migrations `v7` et `v10` exécutées (stockage verrouillé, restes de `demandes_devis` supprimés)
+- [ ] Migrations `v7`, `v10`, `v11` et `v12` exécutées (stockage verrouillé, restes de `demandes_devis` supprimés, contraintes produits, date de modification)
 - [ ] Mentions légales complétées dans `lib/site.js` (forme juridique,
       matricule fiscal, registre RNE, directeur de la publication, hébergeur)
 - [ ] Code envoyé sur le dépôt GitHub privé

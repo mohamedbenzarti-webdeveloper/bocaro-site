@@ -19,7 +19,7 @@ describe("ContactForm", () => {
   });
 
   it("ouvre WhatsApp avec un message structuré et confirme l'envoi", async () => {
-    const ouvrir = vi.spyOn(window, "open").mockImplementation(() => null);
+    const ouvrir = vi.spyOn(window, "open").mockImplementation(() => ({ opener: window }));
     const u = userEvent.setup();
     render(<ContactForm c={getDict("fr").contact} />);
     await u.type(screen.getByLabelText("Nom complet"), "Leïla Trabelsi");
@@ -36,6 +36,27 @@ describe("ContactForm", () => {
     expect(texte).toContain("• E-mail : leila@exemple.tn");
     expect(texte).toContain("*Mon message*\nJe rénove ma cuisine.");
     expect(screen.getByRole("status")).toHaveTextContent("Merci");
+  });
+
+  it("fenêtre bloquée : pas de « Merci », mais un lien pour ouvrir WhatsApp", async () => {
+    vi.spyOn(window, "open").mockImplementation(() => null);
+    const u = userEvent.setup();
+    render(<ContactForm c={getDict("fr").contact} />);
+    await u.type(screen.getByLabelText("Nom complet"), "Sami");
+    await u.type(screen.getByLabelText("Email"), "sami@exemple.tn");
+    await u.type(screen.getByLabelText("Message"), "Bonjour");
+    await u.click(screen.getByRole("button", { name: "Envoyer via WhatsApp" }));
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("bloqué");
+    const lien = screen.getByRole("link", { name: "Ouvrir WhatsApp avec mon message" });
+    expect(lien.getAttribute("href")).toMatch(/^https:\/\/wa\.me\/21698514014\?text=/);
+    expect(new URL(lien.href).searchParams.get("text")).toContain("Bonjour");
+    expect(lien).toHaveAttribute("rel", "noopener noreferrer");
+
+    // Modifier le message efface l'avertissement (le lien serait périmé).
+    await u.type(screen.getByLabelText("Message"), " !");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("le message suit la langue de la page (arabe)", async () => {

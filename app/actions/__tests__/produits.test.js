@@ -5,9 +5,9 @@ import { fauxSupabase, urlPhoto } from "../../../tests/fauxSupabase";
 
 let base;
 vi.mock("../../../lib/supabase/server", () => ({ createClient: async () => base }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), updateTag: vi.fn() }));
 
-const { revalidatePath } = await import("next/cache");
+const { revalidatePath, updateTag } = await import("next/cache");
 const actions = await import("../produits");
 
 function formulaire(champs) {
@@ -96,17 +96,61 @@ describe("creerProduit", () => {
     ]);
   });
 
-  it("vide le cache des pages du catalogue", async () => {
+  it("vide le cache des produits (accueil, catalogue, fiches) et rafraîchit le dashboard", async () => {
     await redirectionDe(actions.creerProduit(formulaire(champsValides)));
-    expect(revalidatePath).toHaveBeenCalledWith("/produits");
-    expect(revalidatePath).toHaveBeenCalledWith("/produits/[id]", "page");
+    expect(updateTag).toHaveBeenCalledWith("produits");
     expect(revalidatePath).toHaveBeenCalledWith("/dashboard");
+    // Les anciennes adresses /catalogue ne sont que des redirections.
+    expect(revalidatePath).not.toHaveBeenCalledWith("/catalogue");
   });
 
   it("renvoie l'erreur de la base sans rediriger", async () => {
     base = fauxSupabase({ erreurs: { insert: "violation de contrainte" } });
     expect(await actions.creerProduit(formulaire(champsValides))).toEqual({ erreur: "violation de contrainte" });
     expect(revalidatePath).not.toHaveBeenCalled();
+    expect(updateTag).not.toHaveBeenCalled();
+  });
+});
+
+describe("photos utilisées : lecture de tous les produits", () => {
+  it("lit les produits par pages de 1000 : une photo du 1500e produit n'est jamais supprimée", async () => {
+    const produits = Array.from({ length: 1500 }, (_, i) => ({ id: `p${String(i).padStart(4, "0")}`, images: [urlPhoto(`f${i}.webp`)] }));
+    base = fauxSupabase({ produits });
+    expect(await actions.annulerEnvois([urlPhoto("f1499.webp"), urlPhoto("inutile.webp")])).toBeNull();
+    expect(base.appels.range).toEqual([[0, 999], [1000, 1999]]);
+    expect(base.appels.remove).toEqual([["inutile.webp"]]);
+  });
+});
+
+describe("validation côté serveur", () => {
+  const refus = [
+    ["prix vide", { prix: "" }, /Prix invalide/],
+    ["prix non numérique", { prix: "abc" }, /Prix invalide/],
+    ["prix négatif", { prix: "-5" }, /Prix invalide/],
+    ["nom vide", { nom: "   " }, /nom du produit/],
+    ["nom trop long", { nom: "x".repeat(121) }, /Nom trop long/],
+    ["description trop longue", { description: "x".repeat(2001) }, /Description trop longue/],
+    ["type inventé", { type: "Marbre" }, /Type de produit inconnu/],
+    ["couleur inventée", { couleurs: ["Fuchsia"] }, /Couleur inconnue/],
+  ];
+  for (const [cas, champs, message] of refus) {
+    it(`refuse : ${cas}`, async () => {
+      const r = await actions.creerProduit(formulaire({ ...champsValides, ...champs }));
+      expect(r.erreur).toMatch(message);
+      expect(base.etat.produits ?? []).toHaveLength(0);
+    });
+  }
+
+  it("refuse aussi à la modification, sans toucher au produit", async () => {
+    base = fauxSupabase({ produits: [{ id: "p1", nom: "Ancien", images: [] }] });
+    const r = await actions.modifierProduit("p1", formulaire({ ...champsValides, prix: "abc" }));
+    expect(r.erreur).toMatch(/Prix invalide/);
+    expect(base.etat.produits[0].nom).toBe("Ancien");
+  });
+
+  it("une dimension cochée et retapée n'est enregistrée qu'une fois", async () => {
+    await redirectionDe(actions.creerProduit(formulaire({ ...champsValides, dimensions_personnalisees: "10 x 10 cm" })));
+    expect(base.etat.produits[0].dimensions).toEqual(["10 x 10 cm", "20 x 20 cm"]);
   });
 });
 
@@ -120,7 +164,7 @@ describe("modifierProduit", () => {
     expect(base.etat.produits[0].nom).toBe("Étoile bleue");
     expect(base.etat.produits[0].images).toEqual([urlPhoto("a.webp")]);
     expect(base.appels.remove).toEqual([["ancienne.webp"]]);
-    expect(revalidatePath).toHaveBeenCalledWith("/produits/p1");
+    expect(updateTag).toHaveBeenCalledWith("produits");
   });
 
   it("ne supprime aucune photo si toutes sont conservées", async () => {

@@ -99,6 +99,28 @@ describe("Langue", () => {
     expect(routeur.refresh).toHaveBeenCalled();
   });
 
+  it("change de langue même si le stockage du navigateur est bloqué", async () => {
+    const u = userEvent.setup();
+    const routeur = useRouter();
+    routeur.refresh.mockClear();
+    const bloque = () => { throw new DOMException("bloqué", "SecurityError"); };
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(bloque);
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(bloque);
+    document.cookie = "bocaro-locale=; max-age=0; path=/";
+    rendreAvecLangue(
+      <>
+        <LanguageSwitcher />
+        <LangueActive />
+      </>
+    );
+    await u.click(screen.getByRole("button", { name: "Changer de langue" }));
+    await u.click(screen.getByRole("button", { name: /English/ }));
+    expect(screen.getByLabelText("langue")).toHaveTextContent("en");
+    expect(document.cookie).toContain("bocaro-locale=en");
+    expect(routeur.refresh).toHaveBeenCalled();
+    vi.restoreAllMocks();
+  });
+
   it("choisir la langue déjà active ne recharge rien", async () => {
     const u = userEvent.setup();
     const routeur = useRouter();

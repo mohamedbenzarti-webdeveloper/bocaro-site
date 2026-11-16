@@ -4,10 +4,8 @@ import { lireProduit } from "../../../lib/supabase/public";
 import ProductDetail from "../../../components/ProductDetail";
 import { SITE_URL } from "../../../lib/site";
 
-// ISR : cache 60 s, régénération en arrière-plan. Les Server Actions
-// appellent revalidatePath("/produits") en mode "layout" (invalide
-// toute la sous-arborescence, y compris les fiches individuelles).
-export const revalidate = 60;
+// Page rendue à chaque visite ; le produit vient du cache de
+// lib/supabase/public.js (60 s, vidé par les actions du dashboard).
 
 // Une seule requête par affichage, partagée entre generateMetadata et la page.
 // Produit absent → null (page 404). Base injoignable → exception : la page

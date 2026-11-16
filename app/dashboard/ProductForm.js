@@ -8,14 +8,10 @@ import { nomFichierSur } from "../../lib/supabase/stockage";
 import ColorPicker from "../../components/admin/ColorPicker";
 import DimensionPicker from "../../components/admin/DimensionPicker";
 import ImageUploader from "../../components/admin/ImageUploader";
+import { LIMITES, TYPES_PRODUIT } from "../../lib/validation-produit";
 
-const TYPES = [
-  "Carreau ciment",
-  "Terre cuite",
-  "Faïence",
-  "Mosaïque",
-  "Sur mesure",
-];
+// Types acceptés par le serveur (lib/validation-produit.js).
+const TYPES = TYPES_PRODUIT;
 
 const LANGUES_FORM = [
   { code: "", label: "Français", requis: true },
@@ -183,6 +179,7 @@ export default function ProductForm({ produit }) {
                 id={`produit-nom${l.code}`}
                 name={`nom${l.code}`}
                 required={l.requis}
+                maxLength={LIMITES.nom}
                 defaultValue={produit?.[`nom${l.code}`] ?? ""}
                 dir={l.code === "_ar" ? "rtl" : "ltr"}
                 placeholder="Ex. Carreau étoile bleue"
@@ -197,6 +194,7 @@ export default function ProductForm({ produit }) {
                 id={`produit-description${l.code}`}
                 name={`description${l.code}`}
                 rows={4}
+                maxLength={LIMITES.description}
                 dir={l.code === "_ar" ? "rtl" : "ltr"}
                 defaultValue={produit?.[`description${l.code}`] ?? ""}
                 placeholder="Décris le produit : matière, finition, usage recommandé..."
@@ -255,6 +253,7 @@ export default function ProductForm({ produit }) {
           name="prix"
           type="number"
           min="0"
+          max={LIMITES.prixMax}
           step="0.01"
           required
           defaultValue={produit?.prix}

@@ -1,10 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "../../lib/supabase/server";
 import { exigerAdmin } from "../../lib/supabase/admin";
 import { BUCKET, cheminDepuisUrl, supprimerFichiers } from "../../lib/supabase/stockage";
+import { TAG_PRODUITS } from "../../lib/supabase/public";
+import { erreurProduit } from "../../lib/validation-produit";
 
 // Délai avant qu'un fichier non utilisé soit considéré comme abandonné :
 // laisse le temps à un envoi en cours d'être enregistré dans un produit.
@@ -19,6 +21,9 @@ function lireFormulaire(formData) {
     .map((d) => d.trim())
     .filter(Boolean);
 
+  // Champ vide → NaN (refusé), et non 0 comme Number("").
+  const prix = formData.get("prix")?.toString().trim();
+
   return {
     nom: formData.get("nom")?.toString().trim(),
     nom_en: formData.get("nom_en")?.toString().trim() || null,
@@ -27,12 +32,12 @@ function lireFormulaire(formData) {
     description: formData.get("description")?.toString().trim() || null,
     description_en: formData.get("description_en")?.toString().trim() || null,
     description_ar: formData.get("description_ar")?.toString().trim() || null,
-    dimensions: [...dimensionsPresets, ...dimensionsPerso],
+    dimensions: [...new Set([...dimensionsPresets, ...dimensionsPerso])],
     // Chaque couleur cochée dans le ColorPicker est un
     // <input type="checkbox" name="couleurs" value="..." /> séparé,
     // donc getAll("couleurs") renvoie directement le tableau choisi.
     couleurs: formData.getAll("couleurs").map((c) => c.toString()),
-    prix: Number(formData.get("prix")),
+    prix: prix ? Number(prix) : NaN,
     // URLs déjà envoyées vers Supabase Storage côté client avant l'appel
     // à cette action (voir ProductForm.js). Seules les photos du bucket
     // sont acceptées : on sait ainsi toujours les supprimer plus tard.
@@ -43,17 +48,13 @@ function lireFormulaire(formData) {
   };
 }
 
-// Invalide le cache ISR des pages du catalogue : la liste (/catalogue)
-// et toutes les fiches produit (/catalogue/[id]).
-function revaliderCatalogue(id) {
+// Vide le cache des lectures de produits (lib/supabase/public.js) : accueil,
+// catalogue et fiches affichent le changement dès la visite suivante. Les
+// pages elles-mêmes ne sont pas en cache (rendues à chaque visite).
+// revalidatePath rafraîchit en plus le dashboard affiché à l'administrateur.
+function revaliderCatalogue() {
+  updateTag(TAG_PRODUITS);
   revalidatePath("/dashboard");
-  revalidatePath("/produits");
-  revalidatePath("/produits/[id]", "page");
-  if (id) revalidatePath(`/produits/${id}`);
-  // Rétrocompatibilité
-  revalidatePath("/catalogue");
-  revalidatePath("/catalogue/[id]", "page");
-  if (id) revalidatePath(`/catalogue/${id}`);
 }
 
 export async function creerProduit(formData) {
@@ -61,6 +62,8 @@ export async function creerProduit(formData) {
   const refus = await exigerAdmin(supabase);
   if (refus) return refus;
   const produit = lireFormulaire(formData);
+  const invalide = erreurProduit(produit);
+  if (invalide) return { erreur: invalide };
 
   const { error } = await supabase.from("produits").insert(produit);
   if (error) {
@@ -76,6 +79,8 @@ export async function modifierProduit(id, formData) {
   const refus = await exigerAdmin(supabase);
   if (refus) return refus;
   const produit = lireFormulaire(formData);
+  const invalide = erreurProduit(produit);
+  if (invalide) return { erreur: invalide };
 
   // Photos actuelles, pour supprimer du stockage celles qui sont retirées.
   const { data: avant } = await supabase.from("produits").select("images").eq("id", id).single();
@@ -93,7 +98,7 @@ export async function modifierProduit(id, formData) {
   const erreurStockage = await supprimerFichiers(supabase, retirees);
   if (erreurStockage) console.error("Photos retirées non supprimées du stockage :", erreurStockage);
 
-  revaliderCatalogue(id);
+  revaliderCatalogue();
   redirect("/dashboard");
 }
 
@@ -111,7 +116,7 @@ export async function supprimerProduit(id) {
 
   // Le produit est supprimé ; ses photos partent avec lui.
   const erreurStockage = await supprimerFichiers(supabase, produit?.images);
-  revaliderCatalogue(id);
+  revaliderCatalogue();
   if (erreurStockage) {
     return { erreur: `Produit supprimé, mais ses photos sont restées dans le stockage : ${erreurStockage}` };
   }
@@ -131,11 +136,24 @@ export async function annulerEnvois(urls) {
   return erreur ? { erreur } : null;
 }
 
+// Supabase renvoie au plus 1000 lignes par requête : au-delà, une seule
+// lecture oublierait des produits, et le nettoyage supprimerait leurs photos.
+const PAGE_PRODUITS = 1000;
+
 /** Chemins de toutes les photos utilisées par un produit (null en cas d'erreur). */
 async function urlsUtilisees(supabase) {
-  const { data, error } = await supabase.from("produits").select("images");
-  if (error) return null;
-  return new Set(data.flatMap((p) => p.images ?? []).map(cheminDepuisUrl).filter(Boolean));
+  const chemins = new Set();
+  for (let page = 0; ; page++) {
+    const debut = page * PAGE_PRODUITS;
+    const { data, error } = await supabase
+      .from("produits")
+      .select("id, images")
+      .order("id")
+      .range(debut, debut + PAGE_PRODUITS - 1);
+    if (error) return null;
+    data.flatMap((p) => p.images ?? []).map(cheminDepuisUrl).filter(Boolean).forEach((c) => chemins.add(c));
+    if (data.length < PAGE_PRODUITS) return chemins;
+  }
 }
 
 /** Fichiers du bucket qu'aucun produit n'utilise, déposés il y a plus d'une heure. */

@@ -137,7 +137,7 @@ describe("ProductForm — modification", () => {
   it("enregistre sans renvoyer les photos existantes, et peut en retirer une", async () => {
     const u = userEvent.setup();
     render(<ProductForm produit={produit} />);
-    await u.click(screen.getAllByRole("button", { name: "Retirer cette image" })[1]);
+    await u.click(screen.getByRole("button", { name: "Retirer la photo 2" }));
     await u.click(screen.getByRole("button", { name: "Enregistrer les modifications" }));
 
     await waitFor(() => expect(actions.modifierProduit).toHaveBeenCalledTimes(1));
@@ -160,8 +160,38 @@ describe("ImageUploader", () => {
     expect(ajoutees[0].preview).toMatch(/^blob:/);
 
     rerender(<ImageUploader value={ajoutees} onChange={onChange} />);
-    await u.click(screen.getAllByRole("button", { name: "Retirer cette image" })[0]);
+    await u.click(screen.getByRole("button", { name: "Retirer la photo 1" }));
     expect(onChange.mock.calls.at(-1)[0].map((i) => i.file.name)).toEqual(["b.png"]);
+  });
+});
+
+describe("ImageUploader — ordre et accessibilité", () => {
+  const trois = [{ url: "https://x/a.webp" }, { url: "https://x/b.webp" }, { url: "https://x/c.webp" }];
+  const urls = (appel) => appel[0].map((i) => i.url.slice(-6));
+
+  it("met une photo en principale et change l'ordre", async () => {
+    const u = userEvent.setup();
+    const onChange = vi.fn();
+    render(<ImageUploader value={trois} onChange={onChange} />);
+    await u.click(screen.getByRole("button", { name: "Utiliser la photo 3 comme photo principale" }));
+    expect(urls(onChange.mock.calls.at(-1))).toEqual(["c.webp", "a.webp", "b.webp"]);
+    await u.click(screen.getByRole("button", { name: "Déplacer la photo 2 vers la droite" }));
+    expect(urls(onChange.mock.calls.at(-1))).toEqual(["a.webp", "c.webp", "b.webp"]);
+    await u.click(screen.getByRole("button", { name: "Déplacer la photo 2 vers la gauche" }));
+    expect(urls(onChange.mock.calls.at(-1))).toEqual(["b.webp", "a.webp", "c.webp"]);
+    expect(screen.getByRole("button", { name: "Déplacer la photo 3 vers la droite" })).toBeDisabled();
+  });
+
+  it("boutons toujours visibles et champ fichier atteignable au clavier", async () => {
+    const u = userEvent.setup();
+    const { container } = render(<ImageUploader value={trois} onChange={() => {}} />);
+    expect(container.innerHTML).not.toMatch(/opacity-0/);
+    const champ = screen.getByLabelText("Ajouter des photos");
+    expect(champ).toHaveClass("sr-only");
+    // Dernier élément de la liste : atteint par Tab après les boutons (→ de la dernière photo est désactivé).
+    screen.getByRole("button", { name: "Utiliser la photo 3 comme photo principale" }).focus();
+    await u.tab();
+    expect(champ).toHaveFocus();
   });
 });
 

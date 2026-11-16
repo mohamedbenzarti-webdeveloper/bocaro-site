@@ -86,7 +86,10 @@ const ORGANISATION_JSON_LD = {
   name: ENTREPRISE.nom,
   description: ENTREPRISE.description,
   url: SITE_URL,
-  logo: `${SITE_URL}/images/simulateur/salon.jpg`,
+  // Logo de la marque (600 × 530 px ; Google exige au moins 112 × 112).
+  logo: `${SITE_URL}/images/logo-oiseau.png`,
+  // Photo représentative de l'activité (distincte du logo).
+  image: `${SITE_URL}/images/simulateur/salon.jpg`,
   foundingDate: ENTREPRISE.fondation,
   email: ENTREPRISE.email,
   telephone: ENTREPRISE.telephones,
@@ -124,8 +127,16 @@ export default async function RootLayout({ children }) {
       </head>
       <body className="bg-surface text-bocaro-950 antialiased">
         <LanguageProvider initialLocale={locale} dict={getDict(locale)}>
+          {/* Premier élément atteint avec Tab : saute le menu (accessibilité
+              clavier et lecteurs d'écran). Visible seulement au focus. */}
+          <a
+            href="#contenu"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded focus:bg-bocaro-950 focus:text-white focus:text-sm focus:font-medium"
+          >
+            {getDict(locale).nav.skipToContent}
+          </a>
           <Navbar />
-          <main>{children}</main>
+          <main id="contenu" tabIndex={-1} className="focus:outline-none">{children}</main>
           <Footer />
           <ScrollToTop />
           <RevealOnScroll />

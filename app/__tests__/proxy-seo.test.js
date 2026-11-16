@@ -137,6 +137,19 @@ describe("sitemap", () => {
     expect(entrees[8].lastModified.toISOString()).toBe("2026-03-04T00:00:00.000Z");
   });
 
+  it("date de dernière modification : updated_at, sinon création ; pas de fausse date sur les pages fixes", async () => {
+    produitsBase = [
+      { id: "p1", created_at: "2026-01-02T00:00:00Z", updated_at: "2026-06-01T00:00:00Z" },
+      { id: "p2", created_at: "2026-03-04T00:00:00Z" },
+    ];
+    const { MISE_A_JOUR } = await import("../../lib/legal");
+    const parUrl = Object.fromEntries((await sitemap()).map((e) => [e.url.replace("https://www.bocaro.test", ""), e]));
+    expect(parUrl["/produits/p1"].lastModified.toISOString()).toBe("2026-06-01T00:00:00.000Z");
+    expect(parUrl["/produits/p2"].lastModified.toISOString()).toBe("2026-03-04T00:00:00.000Z");
+    for (const page of ["", "/produits", "/simulateur", "/a-propos", "/contact"]) expect(parUrl[page].lastModified).toBeUndefined();
+    expect(parUrl["/confidentialite"].lastModified).toEqual(new Date(MISE_A_JOUR));
+  });
+
   it("garde les pages fixes si la base est injoignable", async () => {
     produitsBase = new Error("hors ligne");
     expect((await sitemap()).map((e) => e.url)).toHaveLength(7);

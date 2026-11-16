@@ -14,6 +14,25 @@ function ecrireCookieLangue(locale) {
   document.cookie = `${COOKIE_LANGUE}=${locale}; path=/; max-age=31536000; samesite=lax`;
 }
 
+// localStorage peut être bloqué (navigation privée, données du site
+// refusées) : il ne sert qu'à reprendre une ancienne préférence, son
+// absence ne doit jamais empêcher de changer de langue.
+function lireStockage(cle) {
+  try {
+    return window.localStorage.getItem(cle);
+  } catch {
+    return null;
+  }
+}
+
+function ecrireStockage(cle, valeur) {
+  try {
+    window.localStorage.setItem(cle, valeur);
+  } catch {
+    // Stockage indisponible : le cookie suffit.
+  }
+}
+
 function lireCookieLangue() {
   const m = document.cookie.match(/(?:^|;\s*)bocaro-locale=([^;]+)/);
   return m?.[1];
@@ -38,7 +57,7 @@ export function LanguageProvider({ children, initialLocale = defaultLocale, dict
   const setLocale = (newLocale) => {
     if (!locales.includes(newLocale) || newLocale === locale) return;
     setLocaleState(newLocale);
-    window.localStorage.setItem(COOKIE_LANGUE, newLocale);
+    ecrireStockage(COOKIE_LANGUE, newLocale);
     ecrireCookieLangue(newLocale);
     demarrer(() => router.refresh());
   };
@@ -47,7 +66,7 @@ export function LanguageProvider({ children, initialLocale = defaultLocale, dict
   // navigateur. On la reprend une fois, puis le cookie prend le relais.
   useEffect(() => {
     if (lireCookieLangue()) return;
-    const ancienne = window.localStorage.getItem(COOKIE_LANGUE);
+    const ancienne = lireStockage(COOKIE_LANGUE);
     if (ancienne && locales.includes(ancienne) && ancienne !== locale) setLocale(ancienne);
     else ecrireCookieLangue(locale);
     // eslint-disable-next-line react-hooks/exhaustive-deps

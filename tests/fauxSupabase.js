@@ -1,6 +1,6 @@
 // Fausse base Supabase en mémoire pour tester les actions serveur sans
 // réseau. Elle imite la petite partie de l'API utilisée par le projet :
-//   from("produits").select().eq().single() / insert() / update().eq() / delete().eq()
+//   from("produits").select().eq().order().range().single() / insert() / update().eq() / delete().eq()
 //   storage.from(bucket).list() / remove() / upload() / getPublicUrl()
 //   auth.getUser() / auth.signOut() / rpc("is_admin")
 // Chaque appel est noté dans `appels` pour les vérifications.
@@ -20,7 +20,7 @@ export function fauxSupabase({
     produits: produits.map((p) => ({ ...p })),
     fichiers: fichiers.map((f) => ({ ...f })),
   };
-  const appels = { insert: [], update: [], delete: [], remove: [], list: [], upload: [] };
+  const appels = { insert: [], update: [], delete: [], remove: [], list: [], upload: [], range: [] };
 
   function requete(table) {
     const filtres = [];
@@ -45,6 +45,11 @@ export function fauxSupabase({
           // Comme l'API réelle, la lecture renvoie des copies.
           if (operation.single)
             return { data: lignes[0] ? structuredClone(lignes[0]) : null, error: lignes[0] ? null : { message: "introuvable" } };
+          if (operation.range) {
+            appels.range.push(operation.range);
+            const [de, a] = operation.range;
+            return { data: structuredClone(lignes.slice(de, a + 1)), error: null };
+          }
           return { data: structuredClone(lignes), error: null };
       }
     };
@@ -52,6 +57,8 @@ export function fauxSupabase({
       select: () => constructeur,
       eq: (col, val) => (filtres.push([col, val]), constructeur),
       single: () => ((operation = { ...operation, single: true }), constructeur),
+      order: () => constructeur,
+      range: (de, a) => ((operation = { ...operation, range: [de, a] }), constructeur),
       insert: (valeur) => {
         appels.insert.push(valeur);
         operation = { type: "insert", valeur };

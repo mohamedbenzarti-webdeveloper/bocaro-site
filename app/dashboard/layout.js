@@ -48,7 +48,7 @@ export default async function DashboardLayout({ children }) {
         </div>
       </header>
 
-      <main className="container-app py-10">{children}</main>
+      <div className="container-app py-10">{children}</div>
     </div>
   );
 }
