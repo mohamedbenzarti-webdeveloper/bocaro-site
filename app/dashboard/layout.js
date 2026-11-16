@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "../../lib/supabase/server";
-import { estAdmin } from "../../lib/supabase/admin";
+import { estMembreAdmin, niveauSession } from "../../lib/supabase/admin";
 import { deconnexion } from "../actions/produits";
 
 export const metadata = {
@@ -16,9 +16,13 @@ export default async function DashboardLayout({ children }) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Double vérification côté serveur (en plus du middleware)
-  if (!user || !(await estAdmin(supabase))) {
+  // Double vérification côté serveur (en plus du proxy) : administrateur…
+  if (!user || !(await estMembreAdmin(supabase))) {
     redirect("/login?erreur=acces");
+  }
+  // … et code de double authentification validé pendant cette session.
+  if ((await niveauSession(supabase)).actuel !== "aal2") {
+    redirect("/login");
   }
 
   return (

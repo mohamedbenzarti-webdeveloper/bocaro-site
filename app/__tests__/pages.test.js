@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { rendreAvecLangue, produitsExemple } from "../../tests/utils";
 import { fauxSupabase } from "../../tests/fauxSupabase";
@@ -285,42 +284,80 @@ describe("pages Confidentialité et Mentions légales", () => {
 });
 
 describe("connexion", () => {
-  const Connexion = async () => (await import("../login/page")).default;
+  const Formulaire = async () => (await import("../login/FormulaireConnexion")).default;
+  const PageConnexion = async () => (await import("../login/page")).default;
 
   async function seConnecter(email, mdp) {
     const u = userEvent.setup();
-    const Page = await Connexion();
-    render(<Page />);
+    const F = await Formulaire();
+    render(<F />);
     await u.type(screen.getByLabelText("Email"), email);
     await u.type(screen.getByLabelText("Mot de passe"), mdp);
     await u.click(screen.getByRole("button", { name: "Se connecter" }));
+    return u;
   }
 
-  it("ouvre le dashboard pour un administrateur", async () => {
+  it("mot de passe correct : demande ensuite le code, sans ouvrir le dashboard", async () => {
+    base = fauxSupabase({ aal: "aal1" });
     base.auth.signInWithPassword = vi.fn(async () => ({ error: null }));
     await seConnecter("directeur@bocaro.tn", "secret");
     expect(base.auth.signInWithPassword).toHaveBeenCalledWith({ email: "directeur@bocaro.tn", password: "secret" });
+    expect(await screen.findByLabelText("Code à 6 chiffres")).toBeInTheDocument();
+    expect(useRouter().push).not.toHaveBeenCalledWith("/dashboard");
+  });
+
+  it("bon code : ouvre le dashboard", async () => {
+    base = fauxSupabase({ aal: "aal1" });
+    base.auth.signInWithPassword = vi.fn(async () => ({ error: null }));
+    const u = await seConnecter("directeur@bocaro.tn", "secret");
+    await u.type(await screen.findByLabelText("Code à 6 chiffres"), "123456");
+    await u.click(screen.getByRole("button", { name: "Valider" }));
     await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith("/dashboard"));
+    expect(base.appels.mfa).toContainEqual(["verify", "f1", "123456"]);
   });
 
-  it("explique le refus quand le proxy renvoie ici (?erreur=acces)", async () => {
-    // Promesse déjà résolue (comme celle que Next.js transmet une fois les
-    // paramètres connus) : use() la lit sans suspendre.
-    const promesseResolue = (valeur) => Object.assign(Promise.resolve(valeur), { status: "fulfilled", value: valeur });
-    const Page = await Connexion();
-    // Next.js fournit les paramètres de l'adresse sous forme de promesse.
-    render(
-      <Suspense fallback={null}>
-        <Page searchParams={promesseResolue({ erreur: "acces" })} />
-      </Suspense>
-    );
-    expect(await screen.findByRole("alert")).toHaveTextContent("Ce compte n'a pas accès à l'espace direction.");
+  it("mauvais code : message clair, reste sur l'étape du code", async () => {
+    base = fauxSupabase({ aal: "aal1" });
+    base.auth.signInWithPassword = vi.fn(async () => ({ error: null }));
+    const u = await seConnecter("directeur@bocaro.tn", "secret");
+    await u.type(await screen.findByLabelText("Code à 6 chiffres"), "000000");
+    await u.click(screen.getByRole("button", { name: "Valider" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Code incorrect ou expiré");
+    expect(screen.getByLabelText("Code à 6 chiffres")).toHaveValue("");
+    expect(useRouter().push).not.toHaveBeenCalledWith("/dashboard");
   });
 
-  it("n'affiche aucune erreur sur une connexion normale", async () => {
-    const Page = await Connexion();
-    render(<Page />);
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  it("le champ du code n'accepte que des chiffres", async () => {
+    const u = userEvent.setup();
+    const F = await Formulaire();
+    render(<F etapeInitiale="code" />);
+    await u.type(screen.getByLabelText("Code à 6 chiffres"), "12a 34-56");
+    expect(screen.getByLabelText("Code à 6 chiffres")).toHaveValue("123456");
+    expect(screen.getByLabelText("Code à 6 chiffres")).toHaveAttribute("autocomplete", "one-time-code");
+  });
+
+  it("première connexion : configure l'application (QR code), puis ouvre le dashboard", async () => {
+    // Une configuration abandonnée la fois précédente est d'abord retirée.
+    base = fauxSupabase({ aal: "aal1", facteurs: [{ id: "f9", factor_type: "totp", status: "unverified" }] });
+    base.auth.signInWithPassword = vi.fn(async () => ({ error: null }));
+    const u = await seConnecter("directeur@bocaro.tn", "secret");
+    await u.click(await screen.findByRole("button", { name: "Configurer l'application" }));
+    expect(await screen.findByAltText(/QR code/)).toHaveAttribute("src", expect.stringMatching(/^data:image\/svg\+xml/));
+    expect(screen.getByText("SECRETBASE32")).toBeInTheDocument();
+    expect(base.appels.mfa[0]).toEqual(["unenroll", "f9"]);
+    await u.type(screen.getByLabelText("Code à 6 chiffres"), "123456");
+    await u.click(screen.getByRole("button", { name: "Activer et entrer" }));
+    await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith("/dashboard"));
+    expect(base.mfa.facteurs).toEqual([{ id: "f1", factor_type: "totp", status: "verified" }]);
+  });
+
+  it("« Annuler » déconnecte et revient aux identifiants", async () => {
+    const u = userEvent.setup();
+    const F = await Formulaire();
+    render(<F etapeInitiale="code" />);
+    await u.click(screen.getByRole("button", { name: "Annuler et se déconnecter" }));
+    expect(base.auth.signOut).toHaveBeenCalled();
+    expect(await screen.findByLabelText("Email")).toBeInTheDocument();
   });
 
   it("refuse un mauvais mot de passe sans dire lequel des deux est faux", async () => {
@@ -336,6 +373,46 @@ describe("connexion", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Ce compte n'a pas accès à l'espace direction.");
     expect(base.auth.signOut).toHaveBeenCalled();
     expect(useRouter().push).not.toHaveBeenCalledWith("/dashboard");
+  });
+
+  describe("page serveur : étape affichée selon la session", () => {
+    const rendrePageConnexion = async (searchParams) => {
+      const Page = await PageConnexion();
+      render(await Page({ searchParams: Promise.resolve(searchParams ?? {}) }));
+    };
+
+    it("visiteur : identifiants ; message si renvoyé par le proxy (?erreur=acces)", async () => {
+      base = fauxSupabase({ user: null });
+      await rendrePageConnexion({ erreur: "acces" });
+      expect(screen.getByLabelText("Email")).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent("Ce compte n'a pas accès à l'espace direction.");
+    });
+
+    it("aucun message sur une connexion normale", async () => {
+      base = fauxSupabase({ user: null });
+      await rendrePageConnexion();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
+
+    it("administrateur sans code saisi : étape du code", async () => {
+      base = fauxSupabase({ aal: "aal1" });
+      await rendrePageConnexion();
+      expect(screen.getByLabelText("Code à 6 chiffres")).toBeInTheDocument();
+    });
+
+    it("administrateur sans application configurée : étape de configuration", async () => {
+      base = fauxSupabase({ aal: "aal1", facteurs: [] });
+      await rendrePageConnexion();
+      expect(screen.getByRole("button", { name: "Configurer l'application" })).toBeInTheDocument();
+    });
+  });
+});
+
+describe("dashboard : double authentification exigée côté serveur", () => {
+  it("la mise en page renvoie vers /login (étape du code) si le code n'est pas validé", async () => {
+    const { default: Layout } = await import("../dashboard/layout");
+    base = fauxSupabase({ aal: "aal1" });
+    await expect(Layout({ children: null })).rejects.toThrow(/NEXT_REDIRECT \/login$/);
   });
 });
 

@@ -2,7 +2,9 @@
 // réseau. Elle imite la petite partie de l'API utilisée par le projet :
 //   from("produits").select().eq().order().range().single() / insert() / update().eq() / delete().eq()
 //   storage.from(bucket).list() / remove() / upload() / getPublicUrl()
-//   auth.getUser() / auth.signOut() / rpc("is_admin")
+//   auth.getUser() / auth.signOut() / rpc("est_admin" | "is_admin")
+//   auth.mfa.getAuthenticatorAssuranceLevel() / listFactors() / enroll()
+//   / unenroll() / challengeAndVerify()  (double authentification)
 // Chaque appel est noté dans `appels` pour les vérifications.
 import { vi } from "vitest";
 
@@ -15,12 +17,18 @@ export function fauxSupabase({
   produits = [],
   fichiers = [],
   erreurs = {},
+  // Double authentification : niveau de la session ("aal2" = code validé)
+  // et applications configurées ({ id, status }).
+  aal = "aal2",
+  facteurs = [{ id: "f1", factor_type: "totp", status: "verified" }],
+  codeValide = "123456",
 } = {}) {
   const etat = {
     produits: produits.map((p) => ({ ...p })),
     fichiers: fichiers.map((f) => ({ ...f })),
   };
-  const appels = { insert: [], update: [], delete: [], remove: [], list: [], upload: [], range: [] };
+  const appels = { insert: [], update: [], delete: [], remove: [], list: [], upload: [], range: [], mfa: [] };
+  const mfa = { aal, facteurs: facteurs.map((f) => ({ ...f })) };
 
   function requete(table) {
     const filtres = [];
@@ -108,7 +116,45 @@ export function fauxSupabase({
     auth: {
       getUser: vi.fn(async () => ({ data: { user } })),
       signOut: vi.fn(async () => ({ error: null })),
+      mfa: {
+        getAuthenticatorAssuranceLevel: vi.fn(async () => ({
+          data: {
+            currentLevel: user ? mfa.aal : null,
+            nextLevel: mfa.facteurs.some((f) => f.status === "verified") ? "aal2" : mfa.aal,
+          },
+          error: null,
+        })),
+        listFactors: vi.fn(async () => ({
+          data: { all: mfa.facteurs, totp: mfa.facteurs.filter((f) => f.status === "verified") },
+          error: null,
+        })),
+        enroll: vi.fn(async (params) => {
+          appels.mfa.push(["enroll", params]);
+          const f = { id: `f${mfa.facteurs.length + 1}`, factor_type: "totp", status: "unverified" };
+          mfa.facteurs.push(f);
+          return { data: { id: f.id, totp: { qr_code: "data:image/svg+xml;utf-8,<svg/>", secret: "SECRETBASE32" } }, error: null };
+        }),
+        unenroll: vi.fn(async ({ factorId }) => {
+          appels.mfa.push(["unenroll", factorId]);
+          mfa.facteurs = mfa.facteurs.filter((f) => f.id !== factorId);
+          return { data: { id: factorId }, error: null };
+        }),
+        challengeAndVerify: vi.fn(async ({ factorId, code }) => {
+          appels.mfa.push(["verify", factorId, code]);
+          if (code !== codeValide) return { data: null, error: { message: "Invalid TOTP code entered" } };
+          mfa.facteurs.find((f) => f.id === factorId).status = "verified";
+          mfa.aal = "aal2";
+          return { data: {}, error: null };
+        }),
+      },
     },
-    rpc: vi.fn(async (nom) => (nom === "is_admin" ? { data: admin, error: null } : { data: null, error: { message: "rpc inconnue" } })),
+    mfa,
+    // Comme la base après la migration v13 : est_admin = membre ;
+    // is_admin = membre ET code validé.
+    rpc: vi.fn(async (nom) => {
+      if (nom === "est_admin") return { data: admin, error: null };
+      if (nom === "is_admin") return { data: admin && mfa.aal === "aal2", error: null };
+      return { data: null, error: { message: "rpc inconnue" } };
+    }),
   };
 }

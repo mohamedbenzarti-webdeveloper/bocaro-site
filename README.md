@@ -74,6 +74,8 @@ dossier `sql/` :
    `lib/validation-produit.js`, vérifiées par un test
 6. `migration_v12.sql` — date de dernière modification des produits
    (`updated_at`, tenue par un déclencheur), utilisée par le sitemap
+7. `migration_v13.sql` — double authentification obligatoire : les droits
+   d'écriture exigent le code à 6 chiffres (voir « Double authentification »)
 
 > Les numéros manquants (v4, v6, v8, v9) concernaient l'ancienne table
 > `demandes_devis`, supprimée : les demandes de devis passent uniquement par
@@ -239,6 +241,25 @@ Le token expire au bout d'environ 60 jours : le renouveler (étape 3).
 
 ---
 
+## Double authentification (administrateurs)
+
+- Connexion à `/login` en deux étapes : e-mail et mot de passe, puis code à
+  6 chiffres d'une application d'authentification (Google Authenticator,
+  Microsoft Authenticator…). La première fois, le site affiche un QR code à
+  scanner pour configurer l'application.
+- Le mot de passe seul ne donne accès à rien : le proxy, le dashboard et
+  les actions serveur exigent une session avec code validé (`aal2`), et la
+  base l'impose aussi (`is_admin()` dans `sql/migration_v13.sql`), même si
+  l'API est appelée directement.
+- **Téléphone perdu ou changé** : Supabase → Authentication → Users → le
+  compte → supprimer le facteur TOTP. À la connexion suivante, le site
+  propose d'en configurer un nouveau.
+- **Ordre de mise en place** sur un site déjà en ligne : d'abord déployer
+  le code, puis exécuter `migration_v13.sql` (l'ancien code, qui ne demande
+  pas de code, ne pourrait plus se connecter après la migration).
+
+---
+
 ## Sécurité HTTP
 
 - **CSP** (`Content-Security-Policy`) posée par `proxy.js` sur chaque page,
@@ -334,7 +355,8 @@ Pour un bug d'affichage propre au mobile, tester sur l'appareil réel : les
 - [ ] `npm audit --omit=dev` sans vulnérabilité
 - [ ] `npm run lint`, `npm test`, `npm run test:e2e` et `npm run build` sans erreur ; CI verte sur GitHub
 - [ ] Inscription publique Supabase désactivée, compte admin créé
-- [ ] Migrations `v7`, `v10`, `v11` et `v12` exécutées (stockage verrouillé, restes de `demandes_devis` supprimés, contraintes produits, date de modification)
+- [ ] Double authentification configurée sur le compte admin (`migration_v13.sql` exécutée, QR code scanné)
+- [ ] Migrations `v7`, `v10`, `v11`, `v12` et `v13` exécutées (stockage verrouillé, restes de `demandes_devis` supprimés, contraintes produits, date de modification)
 - [ ] Mentions légales complétées dans `lib/site.js` (forme juridique,
       matricule fiscal, registre RNE, directeur de la publication, hébergeur)
 - [ ] Code envoyé sur le dépôt GitHub privé

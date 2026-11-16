@@ -1,13 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { construireCsp, creerNonce } from "./lib/securite";
+import { estMembreAdmin, niveauSession } from "./lib/supabase/admin";
 
 // Exécuté avant chaque page :
 // 1. Politique de sécurité du contenu (CSP) avec un nonce propre à la
 //    requête (voir lib/securite.js). Next.js lit l'en-tête de la requête
 //    pour ajouter ce nonce à ses scripts ; layout.js le lit via x-nonce.
-// 2. Sur /dashboard et /login seulement : contrôle de la session Supabase
-//    et des droits d'administration.
+// 2. Sur /dashboard et /login seulement : contrôle de la session Supabase,
+//    des droits d'administration et de la double authentification (code
+//    validé = niveau "aal2").
 export async function proxy(request) {
   const nonce = creerNonce();
   const csp = construireCsp(nonce);
@@ -71,8 +73,8 @@ export async function proxy(request) {
 
   // Connecté mais pas administrateur -> déconnexion et retour à /login
   if (user && (isDashboard || isLogin)) {
-    const { data: admin } = await supabase.rpc("is_admin");
-    if (admin !== true) {
+    const admin = await estMembreAdmin(supabase);
+    if (!admin) {
       if (isLogin) return avecCsp(response);
       await supabase.auth.signOut();
       const url = request.nextUrl.clone();
@@ -84,8 +86,17 @@ export async function proxy(request) {
     }
   }
 
-  // Administrateur déjà connecté qui va sur /login -> vers /dashboard
-  if (isLogin && user) {
+  // Administrateur connecté par mot de passe seulement (code pas encore
+  // saisi) : le dashboard attend la 2e étape, affichée par /login.
+  const codeValide = user ? (await niveauSession(supabase)).actuel === "aal2" : false;
+  if (isDashboard && !codeValide) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return avecCsp(NextResponse.redirect(url));
+  }
+
+  // Administrateur déjà connecté (code validé) qui va sur /login -> vers /dashboard
+  if (isLogin && user && codeValide) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return avecCsp(NextResponse.redirect(url));

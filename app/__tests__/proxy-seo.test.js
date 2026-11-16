@@ -8,6 +8,7 @@ vi.mock("@supabase/ssr", () => ({
     auth: {
       getUser: async () => ({ data: { user: session.user } }),
       signOut: session.signOut,
+      mfa: { getAuthenticatorAssuranceLevel: async () => ({ data: { currentLevel: session.aal, nextLevel: "aal2" }, error: null }) },
     },
     rpc: async () => ({ data: session.admin, error: null }),
   })),
@@ -38,7 +39,7 @@ const destination = (reponse) => {
 };
 
 beforeEach(() => {
-  session = { user: null, admin: false, signOut: vi.fn(async () => ({})) };
+  session = { user: null, admin: false, aal: "aal1", signOut: vi.fn(async () => ({})) };
 });
 
 describe("proxy (sécurité de chaque page)", () => {
@@ -103,14 +104,23 @@ describe("proxy (accès au dashboard)", () => {
     expect(session.signOut).not.toHaveBeenCalled();
   });
 
-  it("laisse passer un administrateur sur le dashboard", async () => {
-    session = { ...session, user: { id: "u1" }, admin: true };
+  it("laisse passer un administrateur qui a validé son code", async () => {
+    session = { ...session, user: { id: "u1" }, admin: true, aal: "aal2" };
     expect(destination(await proxy(requete("/dashboard/nouveau")))).toBeNull();
   });
 
-  it("envoie un administrateur déjà connecté de /login vers le dashboard", async () => {
-    session = { ...session, user: { id: "u1" }, admin: true };
+  it("envoie un administrateur déjà connecté (code validé) de /login vers le dashboard", async () => {
+    session = { ...session, user: { id: "u1" }, admin: true, aal: "aal2" };
     expect(destination(await proxy(requete("/login")))).toBe("/dashboard");
+  });
+
+  it("double authentification : mot de passe seul → /login pour saisir le code, sans déconnexion", async () => {
+    session = { ...session, user: { id: "u1" }, admin: true, aal: "aal1" };
+    expect(destination(await proxy(requete("/dashboard")))).toBe("/login");
+    expect(destination(await proxy(requete("/dashboard/nouveau")))).toBe("/login");
+    // /login reste ouvert : il affiche l'étape du code.
+    expect(destination(await proxy(requete("/login")))).toBeNull();
+    expect(session.signOut).not.toHaveBeenCalled();
   });
 });
 
