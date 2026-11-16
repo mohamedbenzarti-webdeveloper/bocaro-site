@@ -204,7 +204,7 @@ export default function ProductForm({ produit }) {
           </div>
         ))}
         <p className="text-xs text-bocaro-400 mt-1">
-          Si l'anglais ou l'arabe n'est pas rempli, le français s'affichera par défaut sur le site.
+          Si l&apos;anglais ou l&apos;arabe n&apos;est pas rempli, le français s&apos;affichera par défaut sur le site.
         </p>
       </div>
 

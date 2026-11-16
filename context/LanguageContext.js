@@ -49,10 +49,13 @@ export function LanguageProvider({ children, initialLocale = defaultLocale, dict
     locales.includes(initialLocale) ? initialLocale : defaultLocale
   );
 
-  // Nouvelle langue reçue du serveur après rafraîchissement.
-  useEffect(() => {
+  // Nouvelle langue reçue du serveur après rafraîchissement : état ajusté
+  // pendant le rendu (pas d'effet, donc pas de rendu supplémentaire).
+  const [localeServeur, setLocaleServeur] = useState(initialLocale);
+  if (initialLocale !== localeServeur) {
+    setLocaleServeur(initialLocale);
     setLocaleState(initialLocale);
-  }, [initialLocale]);
+  }
 
   const setLocale = (newLocale) => {
     if (!locales.includes(newLocale) || newLocale === locale) return;
@@ -67,6 +70,8 @@ export function LanguageProvider({ children, initialLocale = defaultLocale, dict
   useEffect(() => {
     if (lireCookieLangue()) return;
     const ancienne = lireStockage(COOKIE_LANGUE);
+    // Lecture du navigateur, possible seulement après l'affichage.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (ancienne && locales.includes(ancienne) && ancienne !== locale) setLocale(ancienne);
     else ecrireCookieLangue(locale);
     // eslint-disable-next-line react-hooks/exhaustive-deps

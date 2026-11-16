@@ -13,6 +13,9 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     const html = document.documentElement;
+    // Thème appliqué avant l'affichage par le script de layout.js : lisible
+    // seulement côté navigateur, après l'hydratation.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSombre(html.classList.contains("dark"));
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");

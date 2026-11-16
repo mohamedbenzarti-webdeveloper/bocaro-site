@@ -29,15 +29,19 @@ export default function GalerieSlider({ photos, textes }) {
   // Photos à charger : l'active et ses deux voisines, au fil du défilement
   // (les photos déjà vues restent). Évite de télécharger les 8 d'un coup.
   const [aCharger, setACharger] = useState(() => new Set([0, 1, n - 1]));
-  useEffect(() => {
-    setACharger((avant) => {
-      const voisines = [actif, (actif + 1) % n, (actif - 1 + n) % n];
-      if (voisines.every((i) => avant.has(i))) return avant;
-      return new Set([...avant, ...voisines]);
-    });
-  }, [actif, n]);
 
-  const aller = useCallback((i) => setActif(((i % n) + n) % n), [n]);
+  const aller = useCallback(
+    (i) => {
+      const cible = ((i % n) + n) % n;
+      setActif(cible);
+      setACharger((avant) => {
+        const voisines = [cible, (cible + 1) % n, (cible - 1 + n) % n];
+        if (voisines.every((j) => avant.has(j))) return avant;
+        return new Set([...avant, ...voisines]);
+      });
+    },
+    [n]
+  );
   const suivante = useCallback(() => aller(actif + 1), [aller, actif]);
   const precedente = useCallback(() => aller(actif - 1), [aller, actif]);
 

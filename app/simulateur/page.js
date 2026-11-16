@@ -49,6 +49,9 @@ export default function SimulateurPage() {
     const id = new URLSearchParams(window.location.search).get("carreau");
     const produit = id && produits.find((p) => String(p.id) === id);
     if (produit) {
+      // Préselection unique, quand le catalogue (chargé dans le navigateur)
+      // arrive ; l'adresse n'est lisible qu'après l'hydratation.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProduitActif(produit);
       setDepuisFiche(true);
       // Réseau lent : le visiteur a pu choisir sa pièce et continuer avant

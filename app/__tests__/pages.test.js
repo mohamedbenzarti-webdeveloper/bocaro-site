@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderToStaticMarkup } from "react-dom/server";
+import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { rendreAvecLangue, produitsExemple } from "../../tests/utils";
 import { fauxSupabase } from "../../tests/fauxSupabase";
@@ -113,17 +114,17 @@ describe("accueil", () => {
 
 describe("page Produits", () => {
   it("affiche le catalogue de la base et décrit la page aux moteurs de recherche", async () => {
-    const module = await import("../produits/page");
-    expect(module.metadata.alternates.canonical).toBe("/produits");
-    await rendrePage(module.default);
+    const page = await import("../produits/page");
+    expect(page.metadata.alternates.canonical).toBe("/produits");
+    await rendrePage(page.default);
     expect(screen.getAllByRole("article")).toHaveLength(4);
   });
 
   it("base injoignable : erreur (page d'erreur, statut 500) au lieu d'un catalogue vide", async () => {
     const sauvegarde = catalogue;
     catalogue = { data: null, error: { message: "hors ligne" } };
-    const module = await import("../produits/page");
-    await expect(module.default()).rejects.toThrow(/hors ligne/);
+    const page = await import("../produits/page");
+    await expect(page.default()).rejects.toThrow(/hors ligne/);
     catalogue = sauvegarde;
   });
 });
@@ -303,11 +304,17 @@ describe("connexion", () => {
   });
 
   it("explique le refus quand le proxy renvoie ici (?erreur=acces)", async () => {
-    window.history.pushState({}, "", "/login?erreur=acces");
+    // Promesse déjà résolue (comme celle que Next.js transmet une fois les
+    // paramètres connus) : use() la lit sans suspendre.
+    const promesseResolue = (valeur) => Object.assign(Promise.resolve(valeur), { status: "fulfilled", value: valeur });
     const Page = await Connexion();
-    render(<Page />);
+    // Next.js fournit les paramètres de l'adresse sous forme de promesse.
+    render(
+      <Suspense fallback={null}>
+        <Page searchParams={promesseResolue({ erreur: "acces" })} />
+      </Suspense>
+    );
     expect(await screen.findByRole("alert")).toHaveTextContent("Ce compte n'a pas accès à l'espace direction.");
-    window.history.pushState({}, "", "/");
   });
 
   it("n'affiche aucune erreur sur une connexion normale", async () => {

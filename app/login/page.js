@@ -1,23 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase/client";
 
-export default function LoginPage() {
+export default function LoginPage({ searchParams }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [erreur, setErreur] = useState("");
-  const [chargement, setChargement] = useState(false);
-
   // Renvoyé ici par proxy.js ou le dashboard (?erreur=acces) : compte
   // connecté mais absent de la table "admins", ou session expirée.
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("erreur") === "acces") {
-      setErreur("Ce compte n'a pas accès à l'espace direction.");
-    }
-  }, []);
+  const parametres = searchParams ? use(searchParams) : {};
+  const [erreur, setErreur] = useState(
+    parametres?.erreur === "acces" ? "Ce compte n'a pas accès à l'espace direction." : ""
+  );
+  const [chargement, setChargement] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

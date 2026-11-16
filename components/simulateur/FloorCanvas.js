@@ -23,6 +23,8 @@ export default function FloorCanvas({
   // curseurs.
   useEffect(() => {
     let annule = false;
+    // Nouvelles images : le rendu précédent n'est plus valable.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPret(false);
 
     Promise.all([

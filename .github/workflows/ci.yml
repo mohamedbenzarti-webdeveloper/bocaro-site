@@ -1,0 +1,52 @@
+# Intégration continue : à chaque envoi (push) et à chaque pull request,
+# GitHub vérifie le code (ESLint), lance les tests et construit le site.
+# Une croix rouge sur le commit signale ce qui a échoué (onglet Actions).
+# Les tests de bout en bout (npm run test:e2e) restent à lancer à la main :
+# ils ont besoin du site lancé et de Google Chrome.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Valeurs fictives : le build et les tests n'ont pas besoin de la vraie
+      # base (aucune clé réelle n'est stockée dans GitHub).
+      NEXT_PUBLIC_SUPABASE_URL: https://projet-ci.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: cle-publique-ci
+      NEXT_PUBLIC_SITE_URL: https://www.exemple.tn
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Vulnérabilités des dépendances du site
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build

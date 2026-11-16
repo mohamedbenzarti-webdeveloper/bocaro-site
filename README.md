@@ -283,6 +283,17 @@ Trois niveaux, du plus rapide au plus réaliste :
 
 ---
 
+### Qualité du code et intégration continue
+
+- `npm run lint` : ESLint avec les règles recommandées par Next.js
+  (`eslint.config.mjs`). Une exception documentée : `<img>` autorisé dans
+  le simulateur et le dashboard (canvas, aperçus `blob:`).
+- `.github/workflows/ci.yml` : à chaque `push` sur `main` et à chaque pull
+  request, GitHub lance `npm audit` (dépendances du site), ESLint, les tests
+  et le build, avec des clés Supabase fictives. Résultat dans l'onglet
+  **Actions** du dépôt ; une croix rouge sur un commit indique l'étape en
+  échec. Les tests e2e restent à lancer à la main.
+
 ## Git
 
 Le projet est versionné avec Git (branche `main`). Le `.gitignore` exclut
@@ -321,7 +332,7 @@ Pour un bug d'affichage propre au mobile, tester sur l'appareil réel : les
 
 - [ ] `NEXT_PUBLIC_SITE_URL` défini chez l'hébergeur
 - [ ] `npm audit --omit=dev` sans vulnérabilité
-- [ ] `npm test`, `npm run test:e2e` et `npm run build` sans erreur
+- [ ] `npm run lint`, `npm test`, `npm run test:e2e` et `npm run build` sans erreur ; CI verte sur GitHub
 - [ ] Inscription publique Supabase désactivée, compte admin créé
 - [ ] Migrations `v7`, `v10`, `v11` et `v12` exécutées (stockage verrouillé, restes de `demandes_devis` supprimés, contraintes produits, date de modification)
 - [ ] Mentions légales complétées dans `lib/site.js` (forme juridique,
