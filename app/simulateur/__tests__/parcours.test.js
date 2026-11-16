@@ -138,6 +138,25 @@ describe("présélection depuis une fiche produit", () => {
     expect(screen.getByTestId("apercu").getAttribute("data-carreau")).toContain("lagon.webp");
   });
 
+  it("« Modifier la pièce » garde le carreau : nouvelle pièce → simulation directement", async () => {
+    const u = userEvent.setup();
+    rendreAvecLangue(<SimulateurPage />);
+    await u.click(screen.getByRole("radio", { name: /Salon/ }));
+    await u.click(continuer());
+    await u.click(within(carteCarreau("Avoine")).getByRole("radio"));
+    await u.click(continuer());
+    expect(etapeCourante()).toContain("Simulation");
+
+    await u.click(screen.getByRole("button", { name: "Modifier la pièce" }));
+    expect(etapeCourante()).toContain("Espace");
+    await u.click(screen.getByRole("radio", { name: /Cuisine/ }));
+    await u.click(continuer());
+
+    expect(etapeCourante()).toContain("Simulation");
+    expect(rendus.at(-1).room.id).toBe("cuisine");
+    expect(screen.getByTestId("apercu").getAttribute("data-carreau")).toContain("avoine.webp");
+  });
+
   it("« Changer de carreau » ramène à l'étape 2 avec le carreau coché", async () => {
     window.history.replaceState({}, "", "/simulateur?carreau=p4");
     const u = userEvent.setup();

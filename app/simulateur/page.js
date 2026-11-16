@@ -40,9 +40,6 @@ export default function SimulateurPage() {
   // appliqué une seule fois, dès que le catalogue est chargé. Le visiteur
   // choisit ensuite sa pièce ; le carreau est déjà coché à l'étape 2.
   const preselectionFaite = useRef(false);
-  // Vrai quand le carreau vient d'une fiche produit : l'étape « Carrelage »
-  // est alors sautée (pièce choisie → simulation directement).
-  const [depuisFiche, setDepuisFiche] = useState(false);
   useEffect(() => {
     if (preselectionFaite.current || !produits?.length) return;
     preselectionFaite.current = true;
@@ -53,7 +50,6 @@ export default function SimulateurPage() {
       // arrive ; l'adresse n'est lisible qu'après l'hydratation.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setProduitActif(produit);
-      setDepuisFiche(true);
       // Réseau lent : le visiteur a pu choisir sa pièce et continuer avant
       // la fin du chargement ; il attend alors à l'étape « Carrelage »
       // (aucun carreau n'y était encore affiché) → on passe à la simulation.
@@ -89,7 +85,6 @@ export default function SimulateurPage() {
 
   function recommencer() {
     setProduitActif(null);
-    setDepuisFiche(false);
     setReglages(REGLAGES_INITIAUX);
     setPieceId(null);
     setSurfaceType("sol");
@@ -131,7 +126,10 @@ export default function SimulateurPage() {
               onSelect={choisirPiece}
               surfaceType={surfaceType}
               onSelectSurface={setSurfaceType}
-              onContinue={() => allerA(depuisFiche && produitActif ? 3 : 2)}
+              // Carreau déjà choisi (fiche produit, ou « Modifier la pièce »
+              // pendant la simulation) : on revient directement à la
+              // simulation avec la nouvelle pièce, sans le redemander.
+              onContinue={() => allerA(produitActif ? 3 : 2)}
             />
           )}
 
