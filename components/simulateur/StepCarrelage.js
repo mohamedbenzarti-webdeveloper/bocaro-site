@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Pagination from "../Pagination";
+import BarreContinuer from "./BarreContinuer";
 import { useRechercheProduits, PanneauRecherche } from "../RechercheProduits";
 import {
   localizeProductField,
@@ -167,22 +168,16 @@ export default function StepCarrelage({
 
           <Pagination page={pageCourante} nbPages={nbPages} onChange={allerPage} className="mt-10" />
 
-          {/* Récapitulatif + passage à l'étape suivante */}
-          <div className="mt-10 flex flex-col items-center gap-3">
-            <p className="text-sm text-bocaro-600" aria-live="polite">
-              {produitActif
-                ? `${texts.selectedLabel} ${nomProduitActif}`
-                : texts.selectPrompt}
-            </p>
-            <button
-              type="button"
-              onClick={onContinue}
-              disabled={!produitActif}
-              className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-600"
-            >
-              {texts.continueButton}
-            </button>
-          </div>
+          {/* Carreau choisi et « Continuer » : toujours visibles en bas de
+              l'écran, même pendant le défilement des carreaux. */}
+          <BarreContinuer
+            etiquette={texts.selectedLabel}
+            choix={nomProduitActif}
+            invite={texts.selectPrompt}
+            pret={Boolean(produitActif)}
+            onContinue={onContinue}
+            libelle={texts.continueButton}
+          />
         </>
       )}
     </div>

@@ -62,6 +62,30 @@ describe("étape 1 — Espace", () => {
 });
 
 describe("parcours complet (sans présélection)", () => {
+  it("barre « Continuer » collée en bas de l'écran, avec le choix et Sol / Mur", async () => {
+    const u = userEvent.setup();
+    rendreAvecLangue(<SimulateurPage />);
+    const barre = continuer().closest(".sticky");
+    expect(barre).toHaveClass("bottom-0");
+    expect(within(barre).getByText("Sélectionnez une pièce pour continuer.")).toBeInTheDocument();
+
+    await u.click(screen.getByRole("radio", { name: /Cuisine/ }));
+    // Nom de la pièce en clair (et non tronqué derrière l'étiquette).
+    expect(within(barre).getByText("Cuisine")).toHaveClass("font-semibold");
+    expect(within(barre).getByText("Pièce sélectionnée")).toBeInTheDocument();
+    // Le choix Sol / Mur est dans la barre, donc visible sans descendre.
+    const surface = within(barre).getByRole("group", { name: "Surface à carreler" });
+    await u.click(within(surface).getByRole("button", { name: "Mur" }));
+    expect(within(surface).getByRole("button", { name: "Mur" })).toHaveAttribute("aria-pressed", "true");
+    expect(continuer()).toBeEnabled();
+
+    await u.click(continuer());
+    const barreCarreau = continuer().closest(".sticky");
+    expect(within(barreCarreau).getByText("Sélectionnez un carreau pour continuer.")).toBeInTheDocument();
+    await u.click(within(carteCarreau("Avoine")).getByRole("radio"));
+    expect(within(barreCarreau).getByText("Avoine")).toBeInTheDocument();
+  });
+
   it("pièce → carreau → simulation → résultat, puis recommencer", async () => {
     const u = userEvent.setup();
     rendreAvecLangue(<SimulateurPage />);

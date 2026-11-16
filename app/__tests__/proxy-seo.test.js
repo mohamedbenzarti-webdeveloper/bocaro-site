@@ -73,6 +73,17 @@ describe("proxy (sécurité de chaque page)", () => {
     expect(createServerClient).toHaveBeenCalledTimes(1);
   });
 
+  it("upgrade-insecure-requests seulement pour une page demandée en https", async () => {
+    const csp = async (url, entetes) =>
+      (await proxy(new NextRequest(new URL(url), { headers: entetes }))).headers.get("content-security-policy");
+    expect(await csp("https://www.bocaro.test/")).toContain("upgrade-insecure-requests");
+    // Téléphone sur le Wi-Fi, npm start : http, sinon scripts et styles cassés.
+    expect(await csp("http://192.168.1.20:3000/")).not.toContain("upgrade-insecure-requests");
+    // Hébergeur qui termine le https avant Next.js (Vercel, nginx…).
+    expect(await csp("http://interne:3000/", { "x-forwarded-proto": "https" })).toContain("upgrade-insecure-requests");
+    expect(await csp("https://www.bocaro.test/", { "x-forwarded-proto": "http" })).not.toContain("upgrade-insecure-requests");
+  });
+
   it("garde la CSP sur les redirections", async () => {
     const r = await proxy(requete("/dashboard"));
     expect(destination(r)).toBe("/login");

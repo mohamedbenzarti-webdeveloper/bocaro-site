@@ -12,7 +12,10 @@ import { estMembreAdmin, niveauSession } from "./lib/supabase/admin";
 //    validé = niveau "aal2").
 export async function proxy(request) {
   const nonce = creerNonce();
-  const csp = construireCsp(nonce);
+  // https d'après l'hébergeur (en-tête x-forwarded-proto, posé par Vercel,
+  // Netlify, un proxy nginx…) ou d'après l'adresse demandée.
+  const protocole = (request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol).split(",")[0].trim();
+  const csp = construireCsp(nonce, { https: protocole.replace(":", "") === "https" });
 
   // En-têtes de la requête transmise à la page (cookies compris, relus à
   // chaque fois : Supabase peut les mettre à jour).

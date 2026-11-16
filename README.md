@@ -343,6 +343,11 @@ gestionnaire d'identifiants Windows est bien celui qui possède le dépôt
    cette ligne, Next.js bloque le JavaScript de développement depuis une
    autre adresse que `localhost` (page affichée mais rien de cliquable).
 4. Autoriser Node.js dans le pare-feu Windows (réseaux privés) si demandé.
+5. Version de production : `npm run build` puis `npm start`, et ouvrir le
+   lien « Network » affiché. Le site est alors servi en http : la CSP
+   n'envoie `upgrade-insecure-requests` que pour les pages demandées en
+   https (`proxy.js`), sinon scripts et styles seraient cherchés en https
+   et la page s'afficherait cassée.
 
 Pour un bug d'affichage propre au mobile, tester sur l'appareil réel : les
 émulateurs du PC n'utilisent pas le vrai processeur graphique.

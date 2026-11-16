@@ -1,6 +1,7 @@
 "use client";
 
 import { getWizardRooms, hasMur } from "../../lib/rooms";
+import BarreContinuer from "./BarreContinuer";
 
 export default function StepEspace({
   texts,
@@ -79,9 +80,19 @@ export default function StepEspace({
         })}
       </div>
 
-      {/* Surface à carreler : sol ou mur (si la pièce propose un mur) */}
+      {/* Choix en cours, surface à carreler (sol ou mur, si la pièce
+          propose un mur) et « Continuer » : toujours visibles en bas de
+          l'écran, même pendant le défilement des pièces. */}
+      <BarreContinuer
+        etiquette={texts.selectedLabel}
+        choix={pieceActive ? texts.rooms[pieceActive] : ""}
+        invite={texts.selectPrompt}
+        pret={Boolean(pieceActive)}
+        onContinue={onContinue}
+        libelle={texts.continueButton}
+      >
       {pieceActive && muralDisponible && (
-        <div className="mt-10 flex flex-col items-center gap-2.5">
+        <div role="group" aria-label={texts.surfaceLabel} className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-bocaro-500">
             {texts.surfaceLabel}
           </span>
@@ -107,23 +118,7 @@ export default function StepEspace({
           </div>
         </div>
       )}
-
-      {/* Récapitulatif + passage à l'étape suivante */}
-      <div className="mt-8 flex flex-col items-center gap-3">
-        <p className="text-sm text-bocaro-600" aria-live="polite">
-          {pieceActive
-            ? `${texts.selectedLabel} ${texts.rooms[pieceActive]}`
-            : texts.selectPrompt}
-        </p>
-        <button
-          type="button"
-          onClick={onContinue}
-          disabled={!pieceActive}
-          className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-600"
-        >
-          {texts.continueButton}
-        </button>
-      </div>
+      </BarreContinuer>
     </div>
   );
 }
