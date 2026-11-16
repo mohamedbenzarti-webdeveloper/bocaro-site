@@ -64,21 +64,15 @@ dossier `sql/` :
 
 1. `schema.sql` — table `produits` et stockage d'images `produits` (inclut la v2)
 2. `migration_v3.sql` — traductions des produits (EN / AR)
-3. `migration_v4.sql` — table `demandes_devis`
-4. `migration_v5.sql` — écriture réservée aux administrateurs (table `admins`, fonction `is_admin`)
-5. `migration_v6.sql` — anti-spam des demandes de devis (quota)
-6. `migration_v7.sql` — stockage verrouillé : plus de listage public du bucket,
+3. `migration_v5.sql` — écriture réservée aux administrateurs (table `admins`, fonction `is_admin`)
+4. `migration_v7.sql` — stockage verrouillé : plus de listage public du bucket,
    JPEG / PNG / WebP de 5 Mo maximum
-7. `migration_v8.sql` — demandes de devis mises en pause (envoi fermé ; la
-   table et les demandes reçues sont conservées)
-8. `migration_v9.sql` — demandes de devis supprimées automatiquement après
-   12 mois (tâche planifiée chaque nuit ; si l'extension `pg_cron` est
-   refusée : Supabase → Integrations → Cron → Enable, puis réexécuter)
 
-> Les demandes de devis sont **désactivées** pour le moment (formulaire et
-> section du dashboard retirés). Pour les réactiver : réexécuter
-> `migration_v6.sql` et restaurer le code depuis l'historique Git (commit
-> « Version initiale du site BOCARO »).
+> Les numéros manquants (v4, v6, v8, v9) concernaient l'ancienne table
+> `demandes_devis`, supprimée : les demandes de devis passent uniquement par
+> WhatsApp et le site n'enregistre plus aucune donnée de visiteur. Sur une
+> base qui avait reçu ces migrations, exécuter `migration_v10.sql` : il
+> retire la tâche planifiée de purge et les fonctions qui en dépendaient.
 
 Puis :
 
@@ -194,15 +188,26 @@ Le token expire au bout d'environ 60 jours : le renouveler (étape 3).
 
 ---
 
+## Pages d'erreur
+
+- `app/not-found.js` : page 404 traduite (adresse inconnue, produit absent
+  ou supprimé, identifiant invalide).
+- `app/error.js` : si Supabase ne répond pas (panne, projet gratuit mis en
+  pause), le catalogue et les fiches produit affichent une page d'erreur
+  traduite avec « Réessayer », en statut 500. Ils ne renvoient plus un
+  catalogue vide ou un faux 404, qui ferait retirer les fiches de Google.
+
+---
+
 ## Données personnelles
 
 - Pages `/confidentialite` et `/mentions-legales` (FR / EN / AR), textes
   dans `lib/legal.js`, liens dans le pied de page et sous le formulaire de
   contact. À mettre à jour si une collecte change (nouveau formulaire,
   mesure d'audience, nouveau service tiers) ; changer alors `MISE_A_JOUR`.
-- Durée de conservation des demandes : `RETENTION_DEVIS_MOIS` dans
-  `lib/legal.js` et `interval '12 months'` dans `sql/migration_v9.sql` ;
-  un test vérifie qu'ils restent identiques.
+- Durée de conservation des demandes reçues (WhatsApp, e-mail) :
+  `RETENTION_DEMANDES_MOIS` dans `lib/legal.js`. Le site n'a plus de table
+  de demandes : aucune donnée de visiteur n'est stockée dans Supabase.
 - Les champs légaux laissés à `null` dans `lib/site.js` ne sont pas
   affichés : les compléter avant la mise en ligne.
 
@@ -292,7 +297,7 @@ Pour un bug d'affichage propre au mobile, tester sur l'appareil réel : les
 - [ ] `npm audit --omit=dev` sans vulnérabilité
 - [ ] `npm test`, `npm run test:e2e` et `npm run build` sans erreur
 - [ ] Inscription publique Supabase désactivée, compte admin créé
-- [ ] Migrations `v7`, `v8` et `v9` exécutées (stockage verrouillé, devis fermés, conservation 12 mois)
+- [ ] Migrations `v7` et `v10` exécutées (stockage verrouillé, restes de `demandes_devis` supprimés)
 - [ ] Mentions légales complétées dans `lib/site.js` (forme juridique,
       matricule fiscal, registre RNE, directeur de la publication, hébergeur)
 - [ ] Code envoyé sur le dépôt GitHub privé

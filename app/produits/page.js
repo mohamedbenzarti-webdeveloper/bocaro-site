@@ -18,9 +18,9 @@ export const metadata = {
 export default async function ProduitsPage() {
   const { data: produits, error } = await lireProduits();
 
-  if (error) {
-    console.error("Erreur de chargement des produits :", error.message);
-  }
+  // Base injoignable : page d'erreur (statut 500) plutôt qu'un catalogue
+  // vide, que les visiteurs et Google prendraient pour un site sans produits.
+  if (error) throw new Error(`Catalogue non chargé : ${error.message}`);
 
   return <CatalogueGrid produits={produits ?? []} />;
 }

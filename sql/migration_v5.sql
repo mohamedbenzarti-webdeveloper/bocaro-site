@@ -3,14 +3,13 @@
 -- À exécuter dans Supabase → SQL Editor → New query → Run
 -- ============================================================
 --
--- Avant : toute écriture (produits, images, devis) était permise à
+-- Avant : toute écriture (produits, images) était permise à
 -- n'importe quel utilisateur CONNECTÉ. Avec l'inscription publique
 -- active (réglage par défaut de Supabase), un inconnu pouvait créer un
--- compte avec la clé publique du site et administrer le catalogue ou
--- lire les demandes de devis.
+-- compte avec la clé publique du site et administrer le catalogue.
 --
 -- Après : seuls les comptes listés dans la table "admins" peuvent
--- écrire ou lire les devis. Être simplement connecté ne suffit plus.
+-- écrire. Être simplement connecté ne suffit plus.
 --
 -- ÉTAPE 1 — remplacer l'adresse ci-dessous par celle du compte
 -- directeur (celle utilisée sur /login), AVANT d'exécuter le script.
@@ -78,26 +77,6 @@ create policy "Modification images reservee aux admins"
 create policy "Suppression images reservee aux admins"
   on storage.objects for delete to authenticated
   using (bucket_id = 'produits' and public.is_admin());
-
--- ---------- Demandes de devis ----------
--- L'envoi public (anon) reste autorisé, avec ses limites de taille
--- (migration v4) ; lecture / traitement / suppression : admins seuls.
-drop policy if exists "Lecture des devis reservee aux connectes" on demandes_devis;
-drop policy if exists "Modification des devis reservee aux connectes" on demandes_devis;
-drop policy if exists "Suppression des devis reservee aux connectes" on demandes_devis;
-drop policy if exists "Lecture des devis reservee aux admins" on demandes_devis;
-drop policy if exists "Modification des devis reservee aux admins" on demandes_devis;
-drop policy if exists "Suppression des devis reservee aux admins" on demandes_devis;
-
-create policy "Lecture des devis reservee aux admins"
-  on demandes_devis for select to authenticated
-  using (public.is_admin());
-create policy "Modification des devis reservee aux admins"
-  on demandes_devis for update to authenticated
-  using (public.is_admin()) with check (public.is_admin());
-create policy "Suppression des devis reservee aux admins"
-  on demandes_devis for delete to authenticated
-  using (public.is_admin());
 
 -- Vérification : doit renvoyer l'adresse du compte directeur.
 select u.email from public.admins a join auth.users u on u.id = a.user_id;

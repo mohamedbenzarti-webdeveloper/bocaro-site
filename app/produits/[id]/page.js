@@ -10,8 +10,12 @@ import { SITE_URL } from "../../../lib/site";
 export const revalidate = 60;
 
 // Une seule requête par affichage, partagée entre generateMetadata et la page.
+// Produit absent → null (page 404). Base injoignable → exception : la page
+// d'erreur (app/error.js) s'affiche avec un statut 500, pour que Google ne
+// retire pas la fiche de son index pendant une panne passagère.
 const chargerProduit = cache(async (id) => {
-  const { data } = await lireProduit(id);
+  const { data, error } = await lireProduit(id);
+  if (error) throw new Error(`Produit ${id} non chargé : ${error.message}`);
   return data;
 });
 

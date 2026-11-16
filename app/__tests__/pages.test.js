@@ -109,6 +109,50 @@ describe("page Produits", () => {
     await rendrePage(module.default);
     expect(screen.getAllByRole("article")).toHaveLength(4);
   });
+
+  it("base injoignable : erreur (page d'erreur, statut 500) au lieu d'un catalogue vide", async () => {
+    const sauvegarde = catalogue;
+    catalogue = { data: null, error: { message: "hors ligne" } };
+    const module = await import("../produits/page");
+    await expect(module.default()).rejects.toThrow(/hors ligne/);
+    catalogue = sauvegarde;
+  });
+});
+
+describe("fiche produit : absent ou panne", () => {
+  const charger = () => import("../produits/[id]/page");
+
+  it("produit absent : 404", async () => {
+    produitUnique = { data: null, error: null };
+    const { default: Page } = await charger();
+    await expect(Page({ params: Promise.resolve({ id: "absent" }) })).rejects.toThrow(/NEXT_HTTP_ERROR_FALLBACK;404|NEXT_NOT_FOUND/);
+  });
+
+  it("base injoignable : erreur, pas 404", async () => {
+    produitUnique = { data: null, error: { message: "hors ligne" } };
+    const { default: Page, generateMetadata } = await charger();
+    await expect(Page({ params: Promise.resolve({ id: "p2" }) })).rejects.toThrow(/hors ligne/);
+    await expect(generateMetadata({ params: Promise.resolve({ id: "p3" }) })).rejects.toThrow(/hors ligne/);
+  });
+});
+
+describe("pages d'erreur", () => {
+  it("la page 404 est traduite et propose le catalogue", async () => {
+    locale = "en";
+    await rendrePage((await import("../not-found")).default);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Page not found");
+    expect(screen.getByRole("link", { name: "See the products" })).toHaveAttribute("href", "/produits");
+    locale = "fr";
+  });
+
+  it("la page d'erreur permet de réessayer", async () => {
+    const retry = vi.fn();
+    const { default: Erreur } = await import("../error");
+    rendreAvecLangue(<Erreur error={new Error("x")} retry={retry} />);
+    await userEvent.click(screen.getByRole("button", { name: "Réessayer" }));
+    expect(retry).toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("Le site rencontre un problème");
+  });
 });
 
 describe("fiche produit", () => {
@@ -204,10 +248,10 @@ describe("pages Confidentialité et Mentions légales", () => {
     await rendrePage((await import("../confidentialite/page")).default);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Politique de confidentialité");
     expect(screen.getByRole("heading", { level: 2, name: "Durée de conservation" })).toBeInTheDocument();
-    expect(screen.getAllByText(/12 mois/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/12 mois/)).toBeInTheDocument();
     expect(screen.getByText(/loi organique n° 2004-63/)).toBeInTheDocument();
     expect(screen.getByText(/bocaro-locale/)).toBeInTheDocument();
-    expect(document.querySelector("time")).toHaveAttribute("dateTime", "2026-11-14");
+    expect(document.querySelector("time")).toHaveAttribute("dateTime", "2026-11-16");
   });
 
   it("les mentions légales donnent l'éditeur et renvoient vers la confidentialité", async () => {
